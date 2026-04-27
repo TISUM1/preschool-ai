@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>幼师AI助手 - UI原型 v2</title>
+  <style>
+    :root {
+      --primary: #FF9EB5;
+      --primary-dark: #F0728C;
+      --primary-light: #FFD4E0;
+      --bg: #FFF5F7;
+      --surface: #FFF;
+      --text: #2D2D2D;
+      --text-secondary: #6B6B6B;
+      --text-muted: #999;
+      --border: #E8E8E8;
+      --radius: 16px;
+      --radius-sm: 10px;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{
+      font-family: -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+      background:#F0F0F0;display:flex;justify-content:center;align-items:flex-start;
+      padding:20px;min-height:100vh;
+    }
+    .phone-frame{
+      width:390px;min-height:844px;background:var(--bg);border-radius:32px;
+      overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.15);
+      display:flex;flex-direction:column;
+    }
+    .status-bar{
+      height:44px;background:var(--surface);display:flex;align-items:center;
+      justify-content:space-between;padding:0 24px;font-size:12px;font-weight:600;
+      color:var(--text);
+    }
+    .page-header{
+      padding:12px 20px 16px;background:var(--surface);border-bottom:1px solid var(--border);
+    }
+    .page-header h2{font-size:22px;color:var(--text);}
+    .page-header .subtitle{font-size:13px;color:var(--text-muted);margin-top:2px;}
+
+    .page-content{flex:1;overflow-y:auto;padding:16px;}
+
+    /* Bottom Nav - 4 items */
+    .bottom-nav{
+      height:64px;background:var(--surface);display:flex;align-items:center;
+      border-top:1px solid var(--border);flex-shrink:0;
+    }
+    .nav-item{
+      flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      border:none;background:none;font-size:11px;color:var(--text-muted);cursor:pointer;
+      padding:4px 0;
+    }
+    .nav-item .nav-icon{font-size:20px;margin-bottom:2px;}
+    .nav-item.active{color:var(--primary-dark);}
+
+    /* Cards */
+    .card{
+      background:var(--surface);border-radius:var(--radius);padding:16px;
+      margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.04);
+    }
+    .card-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:8px;}
+
+    /* Buttons */
+    .btn{padding:10px 20px;border-radius:24px;border:none;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;}
+    .btn-primary{background:var(--primary);color:#fff;}
+    .btn-primary:active{background:var(--primary-dark);}
+    .btn-outline{background:transparent;border:1.5px solid var(--primary);color:var(--primary-dark);}
+    .btn-sm{padding:6px 14px;font-size:12px;border-radius:16px;}
+    .btn-block{width:100%;padding:14px;text-align:center;}
+
+    .input-box{
+      width:100%;padding:12px 14px;border:1.5px solid var(--border);
+      border-radius:var(--radius-sm);font-size:15px;font-family:inherit;
+      background:#F8F8F8;color:var(--text);resize:none;
+    }
+    .input-box:focus{outline:none;border-color:var(--primary);background:#fff;}
+
+    .label{font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:6px;display:block;}
+
+    .chip{
+      display:inline-block;padding:4px 12px;background:var(--primary-light);
+      color:var(--primary-dark);border-radius:12px;font-size:12px;font-weight:500;margin:2px;
+    }
+    .chip.selected{background:var(--primary);color:#fff;}
+
+    .tag{
+      display:inline-block;padding:6px 14px;background:var(--surface);
+      border:1.5px solid var(--border);border-radius:20px;font-size:13px;
+      cursor:pointer;margin:3px;
+    }
+    .tag.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+
+    .badge{
+      display:inline-block;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:500;
+    }
+    .badge-plan{background:#FFD4E0;color:#D0486C;}
+    .badge-obs{background:#BAE7FF;color:#096DD9;}
+    .badge-paper{background:#EFDBFF;color:#722ED1;}
+    .badge-other{background:#D9F7BE;color:#389E0D;}
+
+    .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;}
+    .toggle-label{font-size:14px;color:var(--text);}
+    .toggle{
+      width:48px;height:28px;background:#CCC;border-radius:14px;cursor:pointer;
+      position:relative;transition:background .2s;
+    }
+    .toggle.on{background:var(--primary);}
+    .toggle::after{
+      content:'';position:absolute;width:24px;height:24px;background:#fff;
+      border-radius:12px;top:2px;left:2px;transition:left .2s;
+    }
+    .toggle.on::after{left:22px;}
+
+    .file-row{
+      display:flex;align-items:center;padding:10px 12px;background:#F8F8F8;
+      border-radius:var(--radius-sm);margin:4px 0;font-size:13px;
+    }
+    .file-row .file-icon{font-size:20px;margin-right:10px;}
+    .file-row .file-info{flex:1;}
+    .file-row .file-name{font-size:13px;color:var(--text);font-weight:500;}
+    .file-row .file-meta{font-size:11px;color:var(--text-muted);}
+
+    .step-indicator{display:flex;gap:8px;margin-bottom:12px;align-items:center;}
+    .step-dot{width:8px;height:8px;border-radius:4px;background:var(--border);transition:all .2s;}
+    .step-dot.done{background:var(--primary);}
+    .step-dot.current{background:var(--primary);width:24px;}
+
+    /* Screen selector */
+    .screen-selector{
+      position:fixed;top:8px;left:50%;transform:translateX(-50%);
+      background:#fff;border-radius:20px;padding:6px 12px;
+      box-shadow:0 4px 16px rgba(0,0,0,.12);font-size:11px;z-index:100;
+      display:flex;gap:4px;flex-wrap:wrap;justify-content:center;max-width:95vw;
+    }
+    .screen-selector button{
+      padding:4px 8px;border-radius:12px;border:1px solid var(--border);
+      background:#fff;font-size:10px;cursor:pointer;font-family:inherit;
+      white-space:nowrap;
+    }
+    .screen-selector button.sel{background:var(--primary);color:#fff;border-color:var(--primary);}
+
+    /* Large entry buttons for paper */
+    .entry-btn{
+      display:block;width:100%;padding:28px 20px;border-radius:var(--radius);
+      border:2px solid var(--border);background:var(--surface);cursor:pointer;
+      text-align:left;margin-bottom:12px;transition:all .2s;
+    }
+    .entry-btn:active{border-color:var(--primary);background:var(--primary-light);}
+    .entry-btn .entry-icon{font-size:36px;margin-bottom:8px;}
+    .entry-btn .entry-title{font-size:18px;font-weight:600;color:var(--text);}
+    .entry-btn .entry-desc{font-size:13px;color:var(--text-muted);margin-top:4px;}
+  </style>
+</head>
+<body>
+
+<div class="screen-selector">
+  <button onclick="showScreen('home')" class="sel">首页</button>
+  <button onclick="showScreen('library')">资源库</button>
+  <button onclick="showScreen('documents')">历史文档</button>
+  <button onclick="showScreen('settings')">设置</button>
+  <button onclick="showScreen('generate-plan')">教案/观察记录生成</button>
+  <button onclick="showScreen('generate-paper')">论文入口</button>
+  <button onclick="showScreen('generate-paper-hastopic')">论文-有题目</button>
+  <button onclick="showScreen('generate-paper-notopic')">论文-无题目</button>
+  <button onclick="showScreen('generate-other')">自由生成</button>
+</div>
+
+<div class="phone-frame" id="phone"></div>
+
+<script>
+const screens = {
+
+// ==========================================
+home: `
+<div class="status-bar"><span>9:41</span><span>🔋 85%</span></div>
+<div class="page-header">
+  <h2>早上好，计老师 🌸</h2>
+  <div class="subtitle">今天是2026年4月27日，祝您有一个好心情 ☀️</div>
+</div>
+<div class="page-content">
+
+  <!-- Quick Action Cards -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+    <div class="card" style="text-align:center;cursor:pointer;background:linear-gradient(135deg,#FFF5F7,#FFD4E0);padding:20px;" onclick="showScreen('generate-plan')">
+      <div style="font-size:36px;">📝</div>
+      <div style="font-weight:600;font-size:16px;margin-top:6px;">写教案</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">模板参考 · AI生成</div>
+    </div>
+    <div class="card" style="text-align:center;cursor:pointer;background:linear-gradient(135deg,#F0F7FF,#BAE7FF);padding:20px;" onclick="showScreen('generate-plan')">
+      <div style="font-size:36px;">👁️</div>
+      <div style="font-weight:600;font-size:16px;margin-top:6px;">观察记录</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">客观描述 · 策略建议</div>
+    </div>
+    <div class="card" style="text-align:center;cursor:pointer;background:linear-gradient(135deg,#FAF5FF,#EFDBFF);padding:20px;" onclick="showScreen('generate-paper')">
+      <div style="font-size:36px;">📄</div>
+      <div style="font-weight:600;font-size:16px;margin-top:6px;">论文</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">选题 → 大纲 → 填充</div>
+    </div>
+    <div class="card" style="text-align:center;cursor:pointer;background:linear-gradient(135deg,#FFF9F0,#FFE7BA);padding:20px;" onclick="showScreen('generate-other')">
+      <div style="font-size:36px;">✨</div>
+      <div style="font-weight:600;font-size:16px;margin-top:6px;">自由生成</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">不限类型内容</div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:8px;">📊 资源库统计</div>
+  <div style="display:flex;gap:10px;">
+    <div class="card" style="flex:1;text-align:center;">
+      <div style="font-size:24px;font-weight:700;color:var(--primary-dark);">15</div>
+      <div style="font-size:11px;color:var(--text-muted);">📝 教案</div>
+    </div>
+    <div class="card" style="flex:1;text-align:center;">
+      <div style="font-size:24px;font-weight:700;color:#096DD9;">8</div>
+      <div style="font-size:11px;color:var(--text-muted);">👁️ 观察记录</div>
+    </div>
+    <div class="card" style="flex:1;text-align:center;">
+      <div style="font-size:24px;font-weight:700;color:#722ED1;">5</div>
+      <div style="font-size:11px;color:var(--text-muted);">📄 论文</div>
+    </div>
+  </div>
+  <div style="font-size:12px;color:var(--text-muted);text-align:center;margin-top:8px;">
+    资源库已积累 15 篇优秀教案 · 8 篇观察记录 · 5 篇论文
+  </div>
+</div>
+`,
+
+// ==========================================
+library: `
+<div class="status-bar"><span>9:41</span><span>🔋 85%</span></div>
+<div class="page-header">
+  <h2>📚 优秀资源库</h2>
+  <div class="subtitle">AI 的长期学习教材 — 上传越多，生成质量越高</div>
+</div>
+<div class="page-content">
+  <div style="display:flex;gap:10px;margin-bottom:16px;">
+    <div class="card" style="flex:1;text-align:center;">
+      <div style="font-size:28px;font-weight:700;color:var(--primary-dark);">15</div>
+      <div style="font-size:11px;color:var(--text-muted);">📝 教案</div>
+    </div>
+    <div class="card" style="flex:1;text-align:center;">
+      <div style="font-size:28px;font-weight:700;color:#096DD9;">8</div>
+      <div style="font-size:11px;color:var(--text-muted);">👁️ 观察记录</div>
+    </div>
+    <div class="card" style="flex:1;text-align:center;">
+      <div style="font-size:28px;font-weight:700;color:#722ED1;">5</div>
+      <div style="font-size:11px;color:var(--text-muted);">📄 论文</div>
+    </div>
+  </div>
+  <div style="margin-bottom:12px;">
+    <span class="tag active">全部</span>
+    <span class="tag">📝 教案</span>
+    <span class="tag">👁️ 观察记录</span>
+    <span class="tag">📄 论文</span>
+  </div>
+  <div class="file-row">
+    <span class="file-icon">📝</span><div class="file-info"><div class="file-name">中班数学《认识图形》.docx</div><div class="file-meta">4/26 上传</div></div><div style="font-size:11px;color:var(--text-muted);">⋯</div>
+  </div>
+  <div class="file-row">
+    <span class="file-icon">📄</span><div class="file-info"><div class="file-name">幼儿园游戏化教学研究.pdf</div><div class="file-meta">4/24 上传</div></div><div style="font-size:11px;color:var(--text-muted);">⋯</div>
+  </div>
+  <div class="file-row">
+    <span class="file-icon">👁️</span><div class="file-info"><div class="file-name">中班幼儿社交行为观察记录.docx</div><div class="file-meta">4/23 上传</div></div><div style="font-size:11px;color:var(--text-muted);">⋯</div>
+  </div>
+  <div style="height:16px;"></div>
+  <button class="btn btn-primary btn-block" style="display:flex;align-items:center;justify-content:center;gap:8px;">
+    <span style="font-size:20px;">+</span> 上传资源（支持 .docx / .pdf 多选）
+  </button>
+</div>
+`,
+
+// ==========================================
+documents: `
+<div class="status-bar"><span>9:41</span><span>🔋 85%</span></div>
+<div class="page-header">
+  <h2>📂 历史文档</h2>
+  <div class="subtitle">已生成的内容，可查看、编辑、导出</div>
+</div>
+<div class="page-content">
+  <div style="margin-bottom:12px;">
+    <span class="tag active">全部</span>
+    <span class="tag">📝 教案</span>
+    <span class="tag">👁️ 观察记录</span>
+    <span class="tag">📄 论文</span>
+    <span class="tag">✨ 其他</span>
+  </div>
+  <div class="card" style="cursor:pointer;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div><div style="font-size:14px;font-weight:500;">中班数学《认识红绿灯》</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px;">今天 10:25 · <span class="badge badge-plan">教案</span></div></div>
+      <div style="font-size:18px;">→</div>
+    </div>
+  </div>
+  <div class="card" style="cursor:pointer;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div><div style="font-size:14px;font-weight:500;">大班区域活动观察记录</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px;">昨天 15:42 · <span class="badge badge-obs">观察记录</span></div></div>
+      <div style="font-size:18px;">→</div>
+    </div>
+  </div>
+  <div class="card" style="cursor:pointer;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div><div style="font-size:14px;font-weight:500;">幼儿园游戏化教学初探</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px;">4/25 · <span class="badge badge-paper">论文</span></div></div>
+      <div style="font-size:18px;">→</div>
+    </div>
+  </div>
+  <div class="card" style="cursor:pointer;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div><div style="font-size:14px;font-weight:500;">春游活动家长通知</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px;">4/24 · <span class="badge badge-other">其他</span></div></div>
+      <div style="font-size:18px;">→</div>
+    </div>
+  </div>
+</div>
+`,
+
+// ==========================================
+settings: `
+<div class="status-bar"><span>9:41</span><span>🔋 85%</span></div>
+<div class="page-header">
+  <h2>⚙️ 设置</h2>
+</div>
+<div class="page-content">
+
+  <div class="card">
+    <div class="card-title">🤖 AI API 设置</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+      <span class="tag active">DeepSeek</span>
+      <span class="tag">通义千问</span>
+      <span class="tag">自定义</span>
+      <span class="tag">+ 添加</span>
+    </div>
+    <label class="label">API 地址</label>
+    <input class="input-box" value="https://api.deepseek.com/v1" style="font-size:13px;margin-bottom:8px;">
+    <label class="label">API Key</label>
+    <input class="input-box" type="password" value="sk-••••••••" style="font-size:13px;margin-bottom:8px;">
+    <label class="label">模型名称</label>
+    <input class="input-box" value="deepseek-chat" style="font-size:13px;">
+    <div style="font-size:11px;color:var(--text-muted);margin-top:8px;background:#FFFBF0;padding:8px;border-radius:8px;">
+      💡 支持任何 OpenAI 兼容 API。中转站请选择「自定义」填入地址和 Key。
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🎨 外观主题</div>
+    <div style="display:flex;gap:8px;">
+      <div style="width:40px;height:40px;border-radius:20px;background:linear-gradient(135deg,#FF9EB5,#F0728C);cursor:pointer;border:3px solid white;box-shadow:0 0 0 2px #FF9EB5;"></div>
+      <div style="width:40px;height:40px;border-radius:20px;background:linear-gradient(135deg,#52C41A,#389E0D);cursor:pointer;"></div>
+      <div style="width:40px;height:40px;border-radius:20px;background:linear-gradient(135deg,#1890FF,#096DD9);cursor:pointer;"></div>
+      <div style="width:40px;height:40px;border-radius:20px;background:linear-gradient(135deg,#FA8C16,#D46B08);cursor:pointer;"></div>
+      <div style="width:40px;height:40px;border-radius:20px;background:linear-gradient(135deg,#9254DE,#722ED1);cursor:pointer;"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">👤 个人信息</div>
+    <label class="label">称呼</label>
+    <input class="input-box" value="计老师" style="font-size:13px;">
+  </div>
+
+  <div class="card" style="text-align:center;">
+    <div style="font-size:12px;color:var(--text-muted);">📱 幼师AI助手 v1.0</div>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">数据存储：本地 IndexedDB</div>
+    <button class="btn btn-outline btn-sm" style="margin-top:10px;">导出所有数据</button>
+    <button class="btn btn-outline btn-sm" style="margin-left:6px;color:var(--error);border-color:var(--error);">清除数据</button>
+  </div>
+</div>
+`,
+
+// ==========================================
+'generate-plan': `
+<div class="status-bar"><span>9:41</span><span>🔋 85%</span></div>
+<div class="page-header">
+  <div style="display:flex;align-items:center;gap:10px;"><span style="cursor:pointer;font-size:20px;" onclick="showScreen('home')">←</span><h2 style="font-size:20px;">📝 生成教案</h2></div>
+  <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">AI 自动参考资源库中的 15 篇优秀教案</div>
+</div>
+<div class="page-content">
+
+  <!-- Template Upload (temporary, session only) -->
+  <div class="card">
+    <div class="card-title">📄 上传参考模板（可选，本次生成后自动丢弃）</div>
+    <div style="margin:6px 0;">
+      <div class="file-row">
+        <span class="file-icon">📝</span>
+        <div class="file-info"><div class="file-name">中班数学《认识图形》.docx</div></div>
+        <span style="font-size:11px;color:var(--error);cursor:pointer;">移除</span>
+      </div>
+      <div class="file-row" style="border:1.5px dashed var(--border);background:transparent;justify-content:center;cursor:pointer;">
+        <span style="font-size:12px;color:var(--text-muted);">+ 上传模板文件（可多选）</span>
+      </div>
+    </div>
+    <div class="toggle-row" style="padding:8px 0 0;">
+      <div>
+        <div class="toggle-label">[✓] 输出相同格式</div>
+        <div style="font-size:11px;color:var(--text-muted);">开启后 AI 将保持模板的格式框架</div>
+      </div>
+      <div class="toggle off" onclick="this.classList.toggle('on')"></div>
+    </div>
+  </div>
+
+  <!-- Input Requirements -->
+  <div class="card">
+    <div class="card-title">🎤 输入要求</div>
+    <label class="label">主题</label>
+    <input class="input-box" placeholder="例如：中班交通安全 - 认识红绿灯" value="中班交通安全 - 认识红绿灯">
+    <label class="label" style="margin-top:10px;">详细要求</label>
+    <textarea class="input-box" rows="3" style="margin-bottom:8px;" placeholder="描述你的需求，或使用语音输入...">结合模板中的活动设计思路，写一份适合中班的交通安全教案，重点是认识红绿灯和斑马线。</textarea>
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;gap:6px;">
+        <span class="chip">小班</span>
+        <span class="chip selected">中班</span>
+        <span class="chip">大班</span>
+      </div>
+      <div style="font-size:12px;color:var(--primary-dark);display:flex;align-items:center;gap:4px;">
+        🎤 按住说话
+      </div>
+    </div>
+  </div>
+
+  <button class="btn btn-primary btn-block" style="margin-top:8px;font-size:16px;">
+    🤖 AI 生成教案
+  </button>
+  <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:6px;">
+    本次生成将参考：资源库 15 篇 + 模板 1 篇
+  </div>
+</div>
+`,
+
+// ==========================================
+'generate-paper': `
+<div class="status-bar"><span>9:41</span><span>🔋 85%</span></div>
+<div class="page-header">
+  <div style="display:flex;align-items:center;gap:10px;"><span style="cursor:pointer;font-size:20px;" onclick="showScreen('home')">←</span><h2 style="font-size:20px;">📄 论文生成</h2></div>
+  <div class="subtitle">请选择你的起点</div>
+</div>
+<div class="page-content">
+
+  <div class="entry-btn" onclick="showScreen('generate-paper-hastopic')">
+    <div class="entry-icon">✍️</div>
+    <div class="entry-title">我有题目</div>
+    <div class="entry-desc">已有论文题目，直接进入大纲和内容生成</div>
+  </div>
+
+  <div class="entry-btn" onclick="showScreen('generate-paper-notopic')">
+    <div class="entry-icon">💡</div>
+    <div class="entry-title">还没有题目</div>
+    <div class="entry-desc">描述研究方向，让 AI 帮你推荐 5 个选题</div>
+  </div>
+</div>
+`,
+
+// ==========================================
+'generate-paper-hastopic': `
+<div class="status-bar"><span>9:41</span><span>🔋 85%</span></div>
+<div class="page-header">
+  <div style="display:flex;align-items:center;gap:8px;">
+    <span style="cursor:pointer;font-size:18px;" onclick="showScreen('generate-paper')">←</span>
+    <h2 style="font-size:20px;">论文 · 有题目</h2>
+  </div>
+  <div style="display:flex;gap:4px;align-items:center;margin-top:8px;">
+    <span style="font-size:11px;color:var(--text-muted);">步骤：</span>
+    <span class="step-dot done"></span><span style="font-size:10px;color:var(--text-muted);">题目</span>
+    <span class="step-dot current"></span><span style="font-size:10px;color:var(--text-muted);">字数</span>
+    <span class="step-dot"></span><span style="font-size:10px;color:var(--text-muted);">大纲</span>
+    <span class="step-dot"></span><span style="font-size:10px;color:var(--text-muted);">填充</span>
+  </div>
+</div>
+<div class="page-content">
+
+  <!-- Input Title -->
+  <div class="card">
+    <div class="card-title">✍️ 输入论文题目</div>
+    <input class="input-box" placeholder="请输入论文题目..." value="幼儿园游戏化教学策略的实践探索">
+    <div style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;color:var(--primary-dark);">
+      🎤 语音输入题目
+    </div>
+  </div>
+
+  <!-- Word Count -->
+  <div class="card">
+    <div class="card-title">📏 选择字数</div>
+    <div style="display:flex;gap:8px;">
+      <span class="tag">3000字</span>
+      <span class="tag active">4000字</span>
+      <span class="tag">5000字</span>
+    </div>
+  </div>
+
+  <!-- Outline Placeholder -->
+  <div class="card">
+    <div class="card-title">📋 论文大纲</div>
+    <div style="font-size:12px;color:var(--text-muted);padding:20px;text-align:center;background:#F8F8F8;border-radius:var(--radius-sm);">
+      完成题目和字数选择后，点击下方按钮自动生成大纲
+    </div>
+  </div>
+
+  <button class="btn btn-primary btn-block" style="font-size:16px;">
+    🤖 生成论文大纲
+  </button>
+</div>
+`,
+
+// ==========================================
+'generate-paper-notopic': `
+<div class="status-bar"><span>9:41</span><span>🔋 85%</span></div>
+<div class="page-header">
+  <div style="display:flex;align-items:center;gap:8px;">
+    <span style="cursor:pointer;font-size:18px;" onclick="showScreen('generate-paper')">←</span>
+    <h2 style="font-size:20px;">论文 · AI 推荐选题</h2>
+  </div>
+  <div style="display:flex;gap:4px;align-items:center;margin-top:8px;">
+    <span style="font-size:11px;color:var(--text-muted);">步骤：</span>
+    <span class="step-dot current"></span><span style="font-size:10px;color:var(--text-muted);">选题</span>
+    <span class="step-dot"></span><span style="font-size:10px;color:var(--text-muted);">字数</span>
+    <span class="step-dot"></span><span style="font-size:10px;color:var(--text-muted);">大纲</span>
+    <span class="step-dot"></span><span style="font-size:10px;color:var(--text-muted);">填充</span>
+  </div>
+</div>
+<div class="page-content">
+
+  <!-- Describe Research Direction -->
+  <div class="card">
+    <div class="card-title">💡 描述你的研究方向</div>
+    <textarea class="input-box" rows="3" placeholder="描述你感兴趣的研究方向，AI会推荐5个选题...">我想研究幼儿园游戏化教学方面的内容，要贴近一线教学实践，有可操作性</textarea>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
+      <span style="font-size:11px;color:var(--text-muted);">描述越详细，推荐越精准</span>
+      <span style="font-size:12px;color:var(--primary-dark);display:flex;align-items:center;gap:4px;">🎤 语音输入</span>
+    </div>
+  </div>
+
+  <!-- AI Generated Topics -->
+  <div class="card">
+    <div class="card-title">📋 AI 推荐选题（点击生成）</div>
+    <div style="font-size:12px;color:var(--text-muted);padding:20px;text-align:center;background:#F8F8F8;border-radius:var(--radius-sm);">
+      描述研究方向后，点击下方按钮<br>AI 将为你生成 5 个选题
+    </div>
+  </div>
+
+  <button class="btn btn-primary btn-block" style="font-size:16px;">
+    🤖 AI 生成 5 个选题
+  </button>
+</div>
+`,
+
+// ==========================================
+'generate-other': `
+<div class="status-bar"><span>9:41</span><span>🔋 85%</span></div>
+<div class="page-header">
+  <div style="display:flex;align-items:center;gap:10px;"><span style="cursor:pointer;font-size:20px;" onclick="showScreen('home')">←</span><h2 style="font-size:20px;">✨ 自由生成</h2></div>
+  <div class="subtitle">不限类型，告诉 AI 你需要什么</div>
+</div>
+<div class="page-content">
+  <div class="card">
+    <div class="card-title">🎤 描述你的需求</div>
+    <textarea class="input-box" rows="4" placeholder="例如：帮我写一份给家长的春游通知..."></textarea>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
+      <span style="font-size:12px;color:var(--text-muted);">可选：上传参考文件</span>
+      <span style="font-size:12px;color:var(--primary-dark);display:flex;align-items:center;gap:4px;">🎤 语音输入</span>
+    </div>
+  </div>
+  <button class="btn btn-primary btn-block" style="font-size:16px;">🤖 AI 生成</button>
+</div>
+`
+};
+
+// ==========================================
+// NAV rendering - 4 items
+const bottomNav = (active) => `
+<div class="bottom-nav">
+  <button class="nav-item${active==='home'?' active':''}" onclick="showScreen('home')"><span class="nav-icon">🏠</span><span class="nav-label">首页</span></button>
+  <button class="nav-item${active==='library'?' active':''}" onclick="showScreen('library')"><span class="nav-icon">📚</span><span class="nav-label">资源库</span></button>
+  <button class="nav-item${active==='documents'?' active':''}" onclick="showScreen('documents')"><span class="nav-icon">📂</span><span class="nav-label">历史文档</span></button>
+  <button class="nav-item${active==='settings'?' active':''}" onclick="showScreen('settings')"><span class="nav-icon">⚙️</span><span class="nav-label">设置</span></button>
+</div>`;
+
+const navPages = ['home','library','documents','settings'];
+
+function showScreen(name) {
+  const phone = document.getElementById('phone');
+  const hasNav = navPages.includes(name);
+  phone.innerHTML = screens[name] + (hasNav ? bottomNav(name) : '');
+  // Update selector
+  document.querySelectorAll('.screen-selector button').forEach(b => b.classList.remove('sel'));
+}
+
+// Init
+showScreen('home');
+</script>
+
+</body>
+</html>

@@ -1,0 +1,167 @@
+<div class="page-header">
+  <h2 id="home-greeting">早上好，老师 🌸</h2>
+  <div class="subtitle" id="home-date"></div>
+</div>
+
+<!-- Quick Actions - Full Width -->
+<div id="home-actions">
+  <div class="card home-action-card" style="background:linear-gradient(135deg,#FFF5F7,#FFD4E0);border-left:4px solid #FF9EB5;" onclick="Router.navigate('generate-plan',{type:'plan'})">
+    <div class="home-action-row">
+      <div class="home-action-icon">📝</div>
+      <div class="home-action-body">
+        <div class="home-action-title">写教案</div>
+        <div class="home-action-desc">上传模板作为参考，AI 自动融合资源库中的优秀范例，生成高质量教案</div>
+      </div>
+      <div class="home-action-arrow">→</div>
+    </div>
+  </div>
+
+  <div class="card home-action-card" style="background:linear-gradient(135deg,#F0F7FF,#BAE7FF);border-left:4px solid #1890FF;" onclick="Router.navigate('generate-plan',{type:'observation'})">
+    <div class="home-action-row">
+      <div class="home-action-icon">👁️</div>
+      <div class="home-action-body">
+        <div class="home-action-title">观察记录</div>
+        <div class="home-action-desc">客观描述幼儿行为，结合《3-6岁指南》进行专业分析，输出策略建议</div>
+      </div>
+      <div class="home-action-arrow">→</div>
+    </div>
+  </div>
+
+  <div class="card home-action-card" style="background:linear-gradient(135deg,#FAF5FF,#EFDBFF);border-left:4px solid #9254DE;" onclick="Router.navigate('generate-paper')">
+    <div class="home-action-row">
+      <div class="home-action-icon">📄</div>
+      <div class="home-action-body">
+        <div class="home-action-title">论文</div>
+        <div class="home-action-desc">选题 → 大纲 → 填充，四阶段精细把控，支持逐段修改和整体润色</div>
+      </div>
+      <div class="home-action-arrow">→</div>
+    </div>
+  </div>
+
+  <div class="card home-action-card" style="background:linear-gradient(135deg,#FFF9F0,#FFE7BA);border-left:4px solid #FA8C16;" onclick="Router.navigate('generate-other')">
+    <div class="home-action-row">
+      <div class="home-action-icon">✨</div>
+      <div class="home-action-body">
+        <div class="home-action-title">自由生成</div>
+        <div class="home-action-desc">家长通知、活动方案、工作总结……告诉 AI 你需要什么，它都能帮你写</div>
+      </div>
+      <div class="home-action-arrow">→</div>
+    </div>
+  </div>
+</div>
+
+<!-- Stats + Resource Library Link -->
+<div class="card" style="padding:14px 16px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+    <span style="font-size:15px;font-weight:600;">📊 资源库</span>
+    <span style="font-size:12px;color:var(--primary-dark);cursor:pointer;" onclick="Router.navigate('library')">管理 →</span>
+  </div>
+  <div style="display:flex;gap:10px;text-align:center;">
+    <div style="flex:1;">
+      <div style="font-size:26px;font-weight:700;color:var(--primary-dark);" id="home-count-plan">0</div>
+      <div style="font-size:11px;color:var(--text-muted);">📝 教案</div>
+    </div>
+    <div style="flex:1;">
+      <div style="font-size:26px;font-weight:700;color:#096DD9;" id="home-count-obs">0</div>
+      <div style="font-size:11px;color:var(--text-muted);">👁️ 观察记录</div>
+    </div>
+    <div style="flex:1;">
+      <div style="font-size:26px;font-weight:700;color:#722ED1;" id="home-count-paper">0</div>
+      <div style="font-size:11px;color:var(--text-muted);">📄 论文</div>
+    </div>
+  </div>
+  <div style="font-size:12px;color:var(--text-muted);text-align:center;margin-top:8px;" id="home-summary"></div>
+</div>
+
+<!-- Recent Documents -->
+<div class="card" id="home-recent">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+    <span style="font-size:15px;font-weight:600;">📂 最近文档</span>
+    <span style="font-size:12px;color:var(--primary-dark);cursor:pointer;" onclick="Router.navigate('documents')">查看全部 →</span>
+  </div>
+  <div id="home-recent-list"></div>
+</div>
+
+<!-- Tips Card -->
+<div class="card" style="background:#FFFBF0;border:1px solid #FFE7BA;" id="home-tips">
+  <div style="font-size:13px;font-weight:600;color:#AD6800;margin-bottom:4px;">💡 使用提示</div>
+  <div style="font-size:12px;color:#8B6914;line-height:1.6;" id="home-tips-content"></div>
+</div>
+
+<style>
+.home-action-card { padding: 14px 16px; cursor: pointer; transition: transform 0.15s; }
+.home-action-card:active { transform: scale(0.98); }
+.home-action-row { display: flex; align-items: center; gap: 12px; }
+.home-action-icon { font-size: 32px; flex-shrink: 0; width: 44px; text-align: center; }
+.home-action-body { flex: 1; min-width: 0; }
+.home-action-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.home-action-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+.home-action-arrow { font-size: 18px; color: var(--text-muted); flex-shrink: 0; }
+</style>
+
+<script>
+(function initHome() {
+  var dateInfo = App.getDateString();
+  var name = AppSettings.getTeacherName() || '老师';
+  document.getElementById('home-greeting').textContent = dateInfo.greeting + '，' + name + ' 🌸';
+  document.getElementById('home-date').textContent = '今天是' + dateInfo.dateStr + '，' + dateInfo.blessing;
+
+  // Stats
+  ResourceLibrary.getStats().then(function(stats) {
+    document.getElementById('home-count-plan').textContent = stats.plan || 0;
+    document.getElementById('home-count-obs').textContent = stats.observation || 0;
+    document.getElementById('home-count-paper').textContent = stats.paper || 0;
+
+    var total = (stats.plan||0) + (stats.observation||0) + (stats.paper||0);
+    var summary = '';
+    if (total > 0) {
+      var parts = [];
+      if (stats.plan > 0) parts.push(stats.plan + ' 篇优秀教案');
+      if (stats.observation > 0) parts.push(stats.observation + ' 篇观察记录');
+      if (stats.paper > 0) parts.push(stats.paper + ' 篇论文');
+      summary = '已积累 ' + parts.join(' · ') + ' — AI 生成质量持续提升中';
+    } else {
+      summary = '还没有资源，点击右上角「管理」去上传优秀范文';
+    }
+    document.getElementById('home-summary').textContent = summary;
+  });
+
+  // Recent documents
+  DocumentDB.getRecent(3).then(function(docs) {
+    var container = document.getElementById('home-recent-list');
+    if (!container) return;
+    if (docs.length === 0) {
+      container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text-muted);font-size:13px;">还没有文档，去首页开始创作吧</div>';
+      return;
+    }
+    var badgeMap = { plan: 'badge-plan', observation: 'badge-obs', paper: 'badge-paper', other: 'badge-other' };
+    var typeMap = { plan: '教案', observation: '观察记录', paper: '论文', other: '其他' };
+    var iconMap = { plan: '📝', observation: '👁️', paper: '📄', other: '✨' };
+    var html = '';
+    for (var i = 0; i < docs.length; i++) {
+      var d = docs[i];
+      var dateStr = d.createdAt ? new Date(d.createdAt).toLocaleDateString('zh-CN') : '';
+      var timeStr = d.createdAt ? new Date(d.createdAt).toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'}) : '';
+      var title = d.title || '未命名文档';
+      html += '<div class="doc-item" onclick="Router.navigate(\'document-view\',{view:' + d.id + '})" style="padding:10px 0;border-bottom:1px solid var(--border);">'
+        + '<div style="flex:1;min-width:0;">'
+        + '<div style="font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + (iconMap[d.type]||'📄') + ' ' + App.escapeHtml(title) + '</div>'
+        + '<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">' + dateStr + ' ' + timeStr + ' · <span class="badge ' + (badgeMap[d.type]||'') + '">' + (typeMap[d.type]||d.type) + '</span></div>'
+        + '</div>'
+        + '<div style="font-size:14px;color:var(--text-muted);">→</div>'
+        + '</div>';
+    }
+    container.innerHTML = html;
+  });
+
+  // Tips
+  var tips = [
+    '上传的优质教案越多，AI 生成的教案就越贴合你的风格。建议先上传 5-10 篇你最满意的教案到资源库。',
+    '生成时可以上传多篇模板，AI 会融合它们的优点。模板用完即弃，不占手机空间。',
+    '麦克风按钮支持长按录音，说完自动转文字。在输入框聚焦时长按右下角 🎤 即可。',
+    '设置中支持 DeepSeek 和通义千问，也可以用第三方中转站 API。选择「自定义」填入任意兼容地址。',
+    '论文生成有两条路：有题目直接开始，没题目让 AI 帮你推荐 5 个选题。先在资源库里存几篇好论文，推荐会更精准。'
+  ];
+  document.getElementById('home-tips-content').textContent = tips[Math.floor(Math.random() * tips.length)];
+})();
+</script>

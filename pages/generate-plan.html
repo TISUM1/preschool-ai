@@ -1,0 +1,101 @@
+<div class="page-header">
+  <div class="back-row">
+    <span class="back-btn" onclick="Router.navigate('home')">←</span>
+    <h2 id="gen-type-title">📝 生成教案</h2>
+  </div>
+  <div class="subtitle" id="gen-resource-hint">AI 自动参考资源库中的优秀范文</div>
+</div>
+
+<!-- Template Upload (Session Only) -->
+<div class="card">
+  <div class="card-title">📄 上传参考模板（可选，本次生成后自动丢弃）</div>
+  <div id="template-list"></div>
+  <input type="file" id="tmpl-upload-input" accept=".docx" multiple style="display:none"
+    onchange="GeneratorWorkflow.uploadTemplates(event.target.files, 'template-list')">
+
+  <div class="toggle-row" style="padding:8px 0 0;">
+    <div>
+      <div class="toggle-label">[✓] 输出相同格式</div>
+      <div style="font-size:11px;color:var(--text-muted);">开启后 AI 将保持模板的格式框架</div>
+    </div>
+    <div class="toggle" id="gen-match-format" onclick="this.classList.toggle('on')"></div>
+  </div>
+</div>
+
+<!-- Input -->
+<div class="card">
+  <div class="card-title">🎤 输入要求</div>
+  <label class="label">主题</label>
+  <input class="input-box" id="gen-topic" placeholder="请输入主题...">
+  <label class="label" style="margin-top:10px;">详细要求</label>
+  <textarea class="input-box" id="gen-requirements" rows="3" placeholder="描述你的具体需求..."></textarea>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
+    <div style="display:flex;gap:6px;">
+      <span class="chip" data-age="小班" onclick="SettingsPage_selectAge(this)">小班</span>
+      <span class="chip selected" data-age="中班" onclick="SettingsPage_selectAge(this)">中班</span>
+      <span class="chip" data-age="大班" onclick="SettingsPage_selectAge(this)">大班</span>
+    </div>
+  </div>
+  <input type="hidden" id="gen-agegroup" value="中班">
+</div>
+
+<!-- Generate Button -->
+<button class="btn btn-primary btn-block" style="margin-top:8px;font-size:16px;" id="gen-btn">
+  🤖 AI 生成
+</button>
+<div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:6px;" id="gen-context-hint"></div>
+
+<!-- Preview Area -->
+<div class="card" id="gen-preview" style="display:none;min-height:200px;">
+  <div class="content-editor" id="gen-preview-content" contenteditable="true"></div>
+</div>
+
+<!-- Action Buttons -->
+<div id="gen-actions" style="display:none;margin-top:12px;gap:10px;">
+  <button class="btn btn-outline btn-block" onclick="GeneratorWorkflow.saveDocument(GeneratorWorkflow._currentType)" style="flex:1;">💾 保存</button>
+  <button class="btn btn-primary btn-block" onclick="GeneratorWorkflow.exportDocx()" style="flex:1;">📥 导出 .docx</button>
+</div>
+
+<script>
+function SettingsPage_selectAge(el) {
+  el.parentElement.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('selected'); });
+  el.classList.add('selected');
+  document.getElementById('gen-agegroup').value = el.dataset.age;
+}
+
+(function initGeneratePlan() {
+  GeneratorWorkflow.init();
+  GeneratorWorkflow._renderTemplateList(document.getElementById('template-list'));
+
+  // Determine type from URL params
+  var params = Router.currentParams || {};
+  var type = params.type || 'plan';
+  GeneratorWorkflow._currentType = type;
+
+  var typeNames = { plan: '教案', observation: '观察记录', paper: '论文', other: '内容' };
+  var typeName = typeNames[type] || '教案';
+
+  var typeIcons = { plan: '📝', observation: '👁️', paper: '📄', other: '✨' };
+  var typeIcon = typeIcons[type] || '📝';
+
+  document.getElementById('gen-type-title').textContent = typeIcon + ' 生成' + typeName;
+
+  // Update resource hint
+  ResourceDB.count(type).then(function(count) {
+    if (count > 0) {
+      document.getElementById('gen-resource-hint').textContent = 'AI 自动参考资源库中 ' + count + ' 篇优秀' + typeName;
+    }
+    document.getElementById('gen-context-hint').textContent = '本次生成将参考：资源库 ' + count + ' 篇 + 模板 ' + GeneratorWorkflow._sessionTemplates.length + ' 篇';
+  });
+
+  // Bind generate button
+  document.getElementById('gen-btn').addEventListener('click', function() {
+    GeneratorWorkflow.generate(type);
+  });
+
+  // Bind voice button to requirements textarea
+  var voiceBtn = document.getElementById('global-voice-btn');
+  if (voiceBtn) voiceBtn.style.display = 'block';
+})();
+</script>

@@ -1,0 +1,68 @@
+<div class="page-header">
+  <h2>📂 历史文档</h2>
+  <div class="subtitle">已生成的内容，可查看、编辑、导出</div>
+</div>
+
+<div class="filter-row">
+  <span class="tag active" data-filter="" onclick="DocsPage.filter('')">全部</span>
+  <span class="tag" data-filter="plan" onclick="DocsPage.filter('plan')">📝 教案</span>
+  <span class="tag" data-filter="observation" onclick="DocsPage.filter('observation')">👁️ 观察记录</span>
+  <span class="tag" data-filter="paper" onclick="DocsPage.filter('paper')">📄 论文</span>
+  <span class="tag" data-filter="other" onclick="DocsPage.filter('other')">✨ 其他</span>
+</div>
+
+<div id="docs-list"></div>
+
+<script>
+var DocsPage = {
+  _filter: '',
+
+  init: async function() {
+    await this.loadList();
+  },
+
+  filter: function(type) {
+    this._filter = type;
+    document.querySelectorAll('.filter-row .tag').forEach(function(t) {
+      t.classList.toggle('active', t.dataset.filter === type);
+    });
+    this.loadList();
+  },
+
+  loadList: async function() {
+    var filter = this._filter ? { type: this._filter } : {};
+    var docs = await DocumentDB.getAll(filter);
+    var container = document.getElementById('docs-list');
+
+    if (docs.length === 0) {
+      container.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text-muted);">'
+        + '<div style="font-size:48px;margin-bottom:12px;">📭</div>'
+        + '<div>还没有生成过内容，去首页开始创作吧</div></div>';
+      return;
+    }
+
+    var badgeMap = { plan: 'badge-plan', observation: 'badge-obs', paper: 'badge-paper', other: 'badge-other' };
+    var typeMap = { plan: '教案', observation: '观察记录', paper: '论文', other: '其他' };
+
+    var html = '';
+    for (var i = 0; i < docs.length; i++) {
+      var d = docs[i];
+      var dateStr = d.createdAt ? new Date(d.createdAt).toLocaleDateString('zh-CN') : '';
+      var timeStr = d.createdAt ? new Date(d.createdAt).toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'}) : '';
+      var title = d.title || '未命名文档';
+      html += '<div class="card doc-item" onclick="DocsPage.view(' + d.id + ')">'
+        + '<div style="flex:1;"><div class="doc-title">' + App.escapeHtml(title) + '</div>'
+        + '<div class="doc-meta">' + dateStr + ' ' + timeStr + ' · <span class="badge ' + (badgeMap[d.type]||'') + '">' + (typeMap[d.type]||d.type) + '</span></div></div>'
+        + '<div style="font-size:18px;">→</div></div>';
+    }
+
+    container.innerHTML = html;
+  },
+
+  view: function(id) {
+    Router.navigate('document-view', { view: id });
+  }
+};
+
+DocsPage.init();
+</script>

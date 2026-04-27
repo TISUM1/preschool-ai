@@ -1,0 +1,71 @@
+<div class="page-header">
+  <div class="back-row">
+    <span class="back-btn" onclick="Router.navigate('generate-paper')">←</span>
+    <h2 style="font-size:20px;">论文 · AI 推荐选题</h2>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
+    <div class="step-dot current" id="ns-dot1"></div><span class="step-label">选题</span>
+    <div class="step-dot" id="ns-dot2"></div><span class="step-label">字数</span>
+    <div class="step-dot" id="ns-dot3"></div><span class="step-label">大纲</span>
+    <div class="step-dot" id="ns-dot4"></div><span class="step-label">填充</span>
+  </div>
+</div>
+
+<!-- Research Direction -->
+<div class="card">
+  <div class="card-title">💡 描述你的研究方向</div>
+  <textarea class="input-box" id="paper-direction" rows="3" placeholder="描述你感兴趣的研究方向，AI会推荐5个选题..."></textarea>
+  <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">描述越详细，推荐越精准</div>
+</div>
+
+<button class="btn btn-primary btn-block" style="font-size:16px;" onclick="PaperWorkflow.generateTopics()">
+  🤖 AI 生成 5 个选题
+</button>
+
+<!-- Topic Options -->
+<div id="topic-options" style="display:none;margin-top:12px;"></div>
+
+<!-- Continue to word count / outline / content -->
+<div id="ns-continue" style="display:none;margin-top:12px;">
+  <div class="card">
+    <div class="card-title">📏 选择字数</div>
+    <div class="word-count-options">
+      <span class="tag" data-words="3000" onclick="PaperWorkflow_selectWords2(this)">3000字</span>
+      <span class="tag active" data-words="4000" onclick="PaperWorkflow_selectWords2(this)">4000字</span>
+      <span class="tag" data-words="5000" onclick="PaperWorkflow_selectWords2(this)">5000字</span>
+    </div>
+  </div>
+  <button class="btn btn-primary btn-block" style="font-size:16px;" onclick="PaperWorkflow_nsContinueToOutline()">
+    🤖 生成论文大纲
+  </button>
+</div>
+
+<script>
+function PaperWorkflow_selectWords2(el) {
+  el.parentElement.querySelectorAll('.tag').forEach(function(t) { t.classList.remove('active'); });
+  el.classList.add('active');
+  PaperWorkflow.state.wordCount = parseInt(el.dataset.words);
+}
+
+function PaperWorkflow_nsContinueToOutline() {
+  // Navigate to has-topic flow
+  Router.navigate('generate-paper-hastopic');
+}
+
+// Override selectTopic to auto-navigate
+var origSelectTopic = PaperWorkflow.selectTopic;
+PaperWorkflow.selectTopic = function(index) {
+  origSelectTopic.call(PaperWorkflow, index);
+  // Show continue section
+  document.getElementById('ns-dot1').classList.add('done');
+  document.getElementById('topic-options').querySelectorAll('.topic-option').forEach(function(el, i) {
+    el.classList.toggle('selected', i === index);
+  });
+  var cont = document.getElementById('ns-continue');
+  if (cont) cont.style.display = 'block';
+};
+
+(function initNoTopic() {
+  PaperWorkflow.init();
+})();
+</script>

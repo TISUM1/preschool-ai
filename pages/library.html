@@ -1,0 +1,130 @@
+<div class="page-header">
+  <h2>📚 优秀资源库</h2>
+  <div class="subtitle">AI 的长期学习教材 — 上传越多，生成质量越高</div>
+</div>
+
+<div class="stats-row">
+  <div class="stat-card" onclick="LibraryPage.filterType('')">
+    <div class="stat-num" style="color:var(--primary-dark);" id="lib-count-total">0</div>
+    <div class="stat-label">全部</div>
+  </div>
+  <div class="stat-card" onclick="LibraryPage.filterType('plan')">
+    <div class="stat-num" style="color:var(--primary-dark);">📝</div>
+    <div class="stat-label">教案</div>
+  </div>
+  <div class="stat-card" onclick="LibraryPage.filterType('observation')">
+    <div class="stat-num" style="color:#096DD9;">👁️</div>
+    <div class="stat-label">观察记录</div>
+  </div>
+  <div class="stat-card" onclick="LibraryPage.filterType('paper')">
+    <div class="stat-num" style="color:#722ED1;">📄</div>
+    <div class="stat-label">论文</div>
+  </div>
+</div>
+
+<div class="filter-row">
+  <span class="tag active" data-filter="" onclick="LibraryPage.filterType('')">全部</span>
+  <span class="tag" data-filter="plan" onclick="LibraryPage.filterType('plan')">📝 教案</span>
+  <span class="tag" data-filter="observation" onclick="LibraryPage.filterType('observation')">👁️ 观察记录</span>
+  <span class="tag" data-filter="paper" onclick="LibraryPage.filterType('paper')">📄 论文</span>
+</div>
+
+<div id="lib-list"></div>
+
+<div style="height:16px;"></div>
+<button class="btn btn-primary btn-block" onclick="LibraryPage.uploadResources()" style="gap:8px;">
+  <span style="font-size:20px;">+</span> 上传资源（支持 .docx / .pdf 多选）
+</button>
+<input type="file" id="lib-file-input" accept=".docx,.pdf" multiple style="display:none" onchange="LibraryPage.handleUpload(event)">
+
+<script>
+var LibraryPage = {
+  _currentType: '',
+
+  init: async function() {
+    await this.loadList();
+  },
+
+  filterType: function(type) {
+    this._currentType = type;
+    document.querySelectorAll('.filter-row .tag').forEach(function(t) {
+      t.classList.toggle('active', t.dataset.filter === type);
+    });
+    this.loadList();
+  },
+
+  loadList: async function() {
+    var type = this._currentType || '';
+    var items = await ResourceLibrary.getResources(type || undefined);
+    var container = document.getElementById('lib-list');
+
+    if (items.length === 0) {
+      container.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text-muted);">'
+        + '<div style="font-size:48px;margin-bottom:12px;">📭</div>'
+        + '<div>还没有资源，点击下方按钮上传优秀范文</div></div>';
+      return;
+    }
+
+    var html = '';
+    for (var i = 0; i < items.length; i++) {
+      var r = items[i];
+      var icon = r.type === 'plan' ? '📝' : (r.type === 'observation' ? '👁️' : '📄');
+      var badgeCls = r.type === 'plan' ? 'badge-plan' : (r.type === 'observation' ? 'badge-obs' : 'badge-paper');
+      var typeName = { plan: '教案', observation: '观察记录', paper: '论文' }[r.type] || '';
+      var dateStr = r.uploadedAt ? new Date(r.uploadedAt).toLocaleDateString('zh-CN') : '';
+      html += '<div class="file-row"><span class="file-icon">' + icon + '</span>'
+        + '<div class="file-info"><div class="file-name">' + App.escapeHtml(r.fileName) + '</div>'
+        + '<div class="file-meta">' + dateStr + ' · ' + r.fileFormat.toUpperCase() + ' · <span class="badge ' + badgeCls + '">' + typeName + '</span></div></div>'
+        + '<span class="file-remove" onclick="LibraryPage.confirmDelete(' + r.id + ')">🗑</span></div>';
+    }
+
+    container.innerHTML = html;
+  },
+
+  uploadResources: function() {
+    document.getElementById('lib-file-input').click();
+  },
+
+  handleUpload: async function(event) {
+    var files = event.target.files;
+    if (!files.length) return;
+
+    // Ask for type
+    var type = await LibraryPage._promptType();
+    if (!type) { event.target.value = ''; return; }
+
+    App.showLoading('正在上传并解析...');
+    var results = await ResourceLibrary.uploadFiles(files, type, function(cur, total, name) {
+      document.getElementById('loading-text').textContent = '正在解析: ' + name + ' (' + (cur+1) + '/' + total + ')';
+    });
+    App.hideLoading();
+    event.target.value = '';
+
+    var success = results.filter(function(r) { return r.success; }).length;
+    var fail = results.filter(function(r) { return !r.success; }).length;
+    if (success > 0) Toast.show('成功上传 ' + success + ' 个文件');
+    if (fail > 0) Toast.show(fail + ' 个文件上传失败', 'error');
+
+    await this.loadList();
+  },
+
+  confirmDelete: async function(id) {
+    if (confirm('确定要删除这个资源吗？')) {
+      await ResourceLibrary.deleteResource(id);
+      Toast.show('已删除');
+      await this.loadList();
+    }
+  },
+
+  _promptType: function() {
+    return new Promise(function(resolve) {
+      var type = prompt('请选择资源类型：\n1 - 教案\n2 - 观察记录\n3 - 论文', '1');
+      var map = { '1': 'plan', '2': 'observation', '3': 'paper' };
+      resolve(map[type] || 'plan');
+    });
+  }
+};
+
+// Auto-init
+LibraryPage.init();
+</script>

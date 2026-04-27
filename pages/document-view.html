@@ -1,0 +1,80 @@
+<div class="page-header">
+  <div class="back-row">
+    <span class="back-btn" onclick="Router.navigate('documents')">←</span>
+    <h2 id="dv-title" style="font-size:20px;">文档详情</h2>
+  </div>
+</div>
+
+<div class="card">
+  <div class="content-editor" id="dv-content" contenteditable="true" style="min-height:400px;line-height:1.8;"></div>
+</div>
+
+<div style="display:flex;gap:10px;margin-top:12px;">
+  <button class="btn btn-outline btn-block" onclick="DocViewPage.saveChanges()" style="flex:1;">💾 保存修改</button>
+  <button class="btn btn-primary btn-block" onclick="DocViewPage.exportDocx()" style="flex:1;">📥 导出 .docx</button>
+</div>
+
+<div style="margin-top:8px;text-align:right;">
+  <button class="btn btn-outline btn-sm" style="color:var(--error);border-color:var(--error);" onclick="DocViewPage.deleteDoc()">🗑 删除</button>
+</div>
+
+<script>
+var DocViewPage = {
+  _docId: null,
+  _title: '',
+
+  init: async function() {
+    var params = Router.currentParams || {};
+    var id = parseInt(params.view);
+    if (!id) {
+      Toast.show('文档不存在', 'error');
+      Router.navigate('documents');
+      return;
+    }
+
+    this._docId = id;
+    var doc = await DocumentDB.getById(id);
+    if (!doc) {
+      Toast.show('文档不存在', 'error');
+      Router.navigate('documents');
+      return;
+    }
+
+    this._title = doc.title || '未命名文档';
+    document.getElementById('dv-title').textContent = this._title;
+
+    var contentEl = document.getElementById('dv-content');
+    if (contentEl) {
+      contentEl.innerHTML = App.markdownToHtml(doc.content || '');
+    }
+  },
+
+  saveChanges: async function() {
+    var contentEl = document.getElementById('dv-content');
+    var content = contentEl ? contentEl.innerHTML : '';
+    await DocumentDB.update(this._docId, { content: content });
+    Toast.show('已保存');
+  },
+
+  exportDocx: async function() {
+    var contentEl = document.getElementById('dv-content');
+    var html = contentEl ? contentEl.innerHTML : '';
+    try {
+      await DocxExporter.exportHtml(this._title, html, this._title);
+      Toast.show('导出成功！');
+    } catch(e) {
+      Toast.show('导出失败: ' + e.message, 'error');
+    }
+  },
+
+  deleteDoc: function() {
+    if (!confirm('确定要删除这篇文档吗？')) return;
+    DocumentDB.remove(this._docId).then(function() {
+      Toast.show('已删除');
+      Router.navigate('documents');
+    });
+  }
+};
+
+DocViewPage.init();
+</script>

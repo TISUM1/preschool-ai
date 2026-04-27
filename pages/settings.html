@@ -1,0 +1,149 @@
+<div class="page-header" style="padding:2px 0 4px;">
+  <h2 style="font-size:18px;">⚙️ 设置</h2>
+</div>
+
+<!-- API Settings -->
+<div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);">
+  <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;" id="api-preset-selector">
+    <span class="tag active" style="padding:3px 10px;font-size:11px;" data-preset="deepseek" onclick="SettingsPage.selectPreset('deepseek')">DeepSeek</span>
+    <span class="tag" style="padding:3px 10px;font-size:11px;" data-preset="qwen" onclick="SettingsPage.selectPreset('qwen')">通义千问</span>
+    <span class="tag" style="padding:3px 10px;font-size:11px;" data-preset="custom" onclick="SettingsPage.selectPreset('custom')">自定义</span>
+    <span style="flex:1;"></span>
+    <button class="btn btn-outline btn-sm" style="padding:4px 10px;font-size:11px;" onclick="SettingsPage.testConnection()">测试</button>
+  </div>
+  <input class="input-box" id="set-api-url" placeholder="API 地址" style="font-size:12px;padding:7px 10px;margin-bottom:5px;" onchange="SettingsPage.onFieldChange()">
+  <div style="display:flex;gap:5px;">
+    <input class="input-box" id="set-api-key" type="password" placeholder="API Key" style="font-size:12px;padding:7px 10px;flex:1;" onchange="SettingsPage.onFieldChange()">
+    <input class="input-box" id="set-model" placeholder="模型" style="font-size:12px;padding:7px 10px;width:130px;" onchange="SettingsPage.onFieldChange()">
+  </div>
+  <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">💡 兼容 OpenAI 的 API 均可使用，中转站选「自定义」</div>
+</div>
+
+<!-- Theme + Name -->
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);">
+  <div style="display:flex;gap:5px;" id="theme-selector">
+    <div style="width:26px;height:26px;border-radius:13px;background:linear-gradient(135deg,#FF9EB5,#F0728C);cursor:pointer;" data-theme="pastel" onclick="SettingsPage.setTheme('pastel')"></div>
+    <div style="width:26px;height:26px;border-radius:13px;background:linear-gradient(135deg,#52C41A,#389E0D);cursor:pointer;" data-theme="forest" onclick="SettingsPage.setTheme('forest')"></div>
+    <div style="width:26px;height:26px;border-radius:13px;background:linear-gradient(135deg,#1890FF,#096DD9);cursor:pointer;" data-theme="ocean" onclick="SettingsPage.setTheme('ocean')"></div>
+    <div style="width:26px;height:26px;border-radius:13px;background:linear-gradient(135deg,#FA8C16,#D46B08);cursor:pointer;" data-theme="warm" onclick="SettingsPage.setTheme('warm')"></div>
+    <div style="width:26px;height:26px;border-radius:13px;background:linear-gradient(135deg,#9254DE,#722ED1);cursor:pointer;" data-theme="lavender" onclick="SettingsPage.setTheme('lavender')"></div>
+  </div>
+  <input class="input-box" id="set-name" placeholder="称呼" style="font-size:12px;padding:7px 10px;flex:1;" onchange="SettingsPage.onFieldChange()">
+</div>
+
+<!-- Footer -->
+<div style="display:flex;align-items:center;justify-content:space-between;">
+  <span style="font-size:11px;color:var(--text-muted);">📱 幼师AI助手 v1.0</span>
+  <span>
+    <button class="btn btn-outline btn-sm" style="padding:3px 8px;font-size:10px;" onclick="SettingsPage.exportAll()">导出</button>
+    <button class="btn btn-outline btn-sm" style="padding:3px 8px;font-size:10px;color:var(--error);border-color:var(--error);margin-left:4px;" onclick="SettingsPage.clearAll()">清除</button>
+  </span>
+</div>
+
+<script>
+var SettingsPage = {
+  _preset: 'deepseek',
+
+  init: async function() {
+    var provider = AppSettings.getApiProvider();
+    var apiUrl = AppSettings.getApiUrl();
+    var apiKey = AppSettings.getApiKey();
+    var model = AppSettings.getModel();
+    var theme = AppSettings.getTheme();
+    var name = AppSettings.getTeacherName();
+
+    // Determine preset
+    if (apiUrl && apiUrl.includes('deepseek')) this._preset = 'deepseek';
+    else if (apiUrl && apiUrl.includes('dashscope')) this._preset = 'qwen';
+    else this._preset = 'custom';
+
+    document.getElementById('set-api-url').value = apiUrl || '';
+    document.getElementById('set-api-key').value = apiKey || '';
+    document.getElementById('set-model').value = model || '';
+    document.getElementById('set-name').value = name === '老师' ? '' : name;
+
+    this.selectPreset(this._preset);
+    this._highlightTheme(theme);
+  },
+
+  selectPreset: function(preset) {
+    this._preset = preset;
+    document.querySelectorAll('#api-preset-selector .tag').forEach(function(t) {
+      t.classList.toggle('active', t.dataset.preset === preset);
+    });
+
+    var presets = {
+      deepseek: { url: 'https://api.deepseek.com/v1', model: 'deepseek-chat' },
+      qwen: { url: 'https://dashscope.aliyuncs.com/compatible-mode/v1', model: 'qwen-plus' },
+      custom: { url: '', model: '' }
+    };
+
+    var p = presets[preset];
+    if (preset !== 'custom') {
+      document.getElementById('set-api-url').value = p.url;
+      document.getElementById('set-model').value = p.model;
+    }
+    this.saveApiSettings();
+  },
+
+  onFieldChange: function() {
+    this._preset = 'custom';
+    document.querySelectorAll('#api-preset-selector .tag').forEach(function(t) {
+      t.classList.toggle('active', t.dataset.preset === 'custom');
+    });
+    this.saveApiSettings();
+  },
+
+  saveApiSettings: async function() {
+    await AppSettings.set('apiProvider', this._preset);
+    await AppSettings.set('apiUrl', document.getElementById('set-api-url').value.trim());
+    await AppSettings.set('apiKey', document.getElementById('set-api-key').value.trim());
+    await AppSettings.set('model', document.getElementById('set-model').value.trim());
+    var nameVal = document.getElementById('set-name').value.trim();
+    if (nameVal) await AppSettings.set('teacherName', nameVal);
+  },
+
+  setTheme: async function(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    await AppSettings.set('theme', theme);
+    this._highlightTheme(theme);
+    Toast.show('主题已切换');
+  },
+
+  _highlightTheme: function(theme) {
+    document.querySelectorAll('#theme-selector div').forEach(function(d) {
+      var isActive = d.dataset.theme === theme;
+      d.style.border = isActive ? '3px solid white' : '3px solid transparent';
+      d.style.boxShadow = isActive ? '0 0 0 2px var(--primary)' : 'none';
+    });
+  },
+
+  testConnection: async function() {
+    this.saveApiSettings();
+    App.showLoading('测试连接...');
+    try {
+      await ApiClient.chat([{ role: 'user', content: '你好，请回复"连接成功"' }], { stream: false, max_tokens: 20 });
+      App.hideLoading();
+      Toast.show('连接成功！', 'success');
+    } catch(e) {
+      App.hideLoading();
+      Toast.show('连接失败: ' + e.message, 'error');
+    }
+  },
+
+  exportAll: function() {
+    Toast.show('数据导出功能将在第2阶段实现');
+  },
+
+  clearAll: function() {
+    if (confirm('确定要清除所有本地数据吗？此操作不可恢复。')) {
+      db.delete().then(function() {
+        Toast.show('数据已清除，请刷新页面');
+        setTimeout(function() { location.reload(); }, 1500);
+      });
+    }
+  }
+};
+
+SettingsPage.init();
+</script>

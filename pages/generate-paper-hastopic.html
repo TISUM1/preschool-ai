@@ -1,0 +1,107 @@
+<div class="page-header">
+  <div class="back-row">
+    <span class="back-btn" onclick="Router.navigate('generate-paper')">←</span>
+    <h2 style="font-size:20px;">论文 · 我有题目</h2>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
+    <div class="step-dot current" id="hs-dot1"></div><span class="step-label">题目</span>
+    <div class="step-dot" id="hs-dot2"></div><span class="step-label">字数</span>
+    <div class="step-dot" id="hs-dot3"></div><span class="step-label">大纲</span>
+    <div class="step-dot" id="hs-dot4"></div><span class="step-label">填充</span>
+  </div>
+</div>
+
+<!-- Step 1: Topic Input -->
+<div class="card" id="hs-step1">
+  <div class="card-title">✍️ 输入论文题目</div>
+  <input class="input-box" id="paper-topic" placeholder="请输入论文题目...">
+  <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">💡 如果是从 AI 推荐选题来的，题目已自动填入</div>
+</div>
+
+<!-- Step 2: Word Count -->
+<div class="card" id="hs-step2">
+  <div class="card-title">📏 选择字数</div>
+  <div class="word-count-options" id="paper-wordcount">
+    <span class="tag" data-words="3000" onclick="PaperWorkflow_selectWords(this)">3000字</span>
+    <span class="tag active" data-words="4000" onclick="PaperWorkflow_selectWords(this)">4000字</span>
+    <span class="tag" data-words="5000" onclick="PaperWorkflow_selectWords(this)">5000字</span>
+  </div>
+</div>
+
+<!-- Step 3: Outline -->
+<div class="card" id="hs-step3">
+  <div class="card-title">📋 论文大纲</div>
+  <div id="outline-preview" style="font-size:12px;color:var(--text-muted);padding:20px;text-align:center;background:#F8F8F8;border-radius:var(--radius-sm);">
+    点击下方按钮自动生成大纲
+  </div>
+  <div id="outline-editor" style="display:none;"></div>
+  <div id="outline-actions" style="display:none;margin-top:10px;text-align:right;gap:8px;">
+    <button class="btn btn-outline btn-sm" onclick="PaperWorkflow.generateOutline()">🔄 重新生成</button>
+  </div>
+</div>
+
+<!-- Generate Outline Button -->
+<button class="btn btn-primary btn-block" id="hs-btn-outline" style="font-size:16px;" onclick="PaperWorkflow.generateOutline()">
+  🤖 生成论文大纲
+</button>
+
+<!-- Step 4: Content Fill -->
+<div class="card" id="hs-step4" style="display:none;">
+  <div class="card-title">📝 论文内容</div>
+  <div class="content-editor" id="paper-preview" contenteditable="true" style="min-height:300px;"></div>
+</div>
+
+<button class="btn btn-primary btn-block" id="hs-btn-fill" style="display:none;font-size:16px;" onclick="PaperWorkflow.fillContent()">
+  🤖 填充论文内容
+</button>
+
+<!-- Save/Export -->
+<div id="paper-save-actions" style="display:none;gap:10px;margin-top:12px;">
+  <button class="btn btn-outline btn-block" onclick="PaperWorkflow.saveDocument()" style="flex:1;">💾 保存</button>
+  <button class="btn btn-primary btn-block" onclick="PaperWorkflow.exportDocx()" style="flex:1;">📥 导出 .docx</button>
+</div>
+
+<script>
+function PaperWorkflow_selectWords(el) {
+  el.parentElement.querySelectorAll('.tag').forEach(function(t) { t.classList.remove('active'); });
+  el.classList.add('active');
+  PaperWorkflow.state.wordCount = parseInt(el.dataset.words);
+}
+
+(function initHasTopic() {
+  PaperWorkflow.init();
+
+  // Pre-fill topic if coming from AI topic selection
+  if (PaperWorkflow.state.topic) {
+    var topicInput = document.getElementById('paper-topic');
+    if (topicInput) topicInput.value = PaperWorkflow.state.topic;
+  }
+
+  // Listen for outline generation to update UI
+  var origGenerateOutline = PaperWorkflow.generateOutline;
+  PaperWorkflow.generateOutline = async function() {
+    await origGenerateOutline.call(PaperWorkflow);
+    // After outline generated, update step indicators
+    document.getElementById('hs-dot1').classList.add('done');
+    document.getElementById('hs-dot2').classList.add('done');
+    document.getElementById('hs-dot3').classList.add('current');
+    document.getElementById('hs-dot3').classList.remove('done');
+
+    // Hide outline button, show fill button
+    var btn = document.getElementById('hs-btn-outline');
+    if (btn) btn.style.display = 'none';
+    var fillBtn = document.getElementById('hs-btn-fill');
+    if (fillBtn) fillBtn.style.display = 'block';
+  };
+
+  // Listen for content fill to update UI
+  var origFillContent = PaperWorkflow.fillContent;
+  PaperWorkflow.fillContent = async function() {
+    await origFillContent.call(PaperWorkflow);
+    document.getElementById('hs-dot3').classList.add('done');
+    document.getElementById('hs-dot4').classList.add('current');
+    document.getElementById('hs-step4').style.display = 'block';
+    document.getElementById('hs-btn-fill').style.display = 'none';
+  };
+})();
+</script>

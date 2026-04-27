@@ -1,0 +1,36 @@
+<div class="page-header">
+  <div class="back-row">
+    <span class="back-btn" onclick="Router.navigate('home')">←</span>
+    <h2>✨ 自由生成</h2>
+  </div>
+  <div class="subtitle">不限类型，告诉 AI 你需要什么</div>
+</div>
+
+<div class="card">
+  <div class="card-title">🎤 描述你的需求</div>
+  <textarea class="input-box" id="gen-topic" rows="4" placeholder="描述你需要的任何内容，例如：帮我写一份给家长的春游通知..."></textarea>
+  <label class="label" style="margin-top:10px;">补充要求（可选）</label>
+  <textarea class="input-box" id="gen-requirements" rows="3" placeholder="补充具体要求..."></textarea>
+</div>
+
+<button class="btn btn-primary btn-block" style="font-size:16px;" onclick="GeneratorWorkflow.generate('other')">
+  🤖 AI 生成
+</button>
+
+<div class="card" id="gen-preview" style="display:none;min-height:200px;">
+  <div class="content-editor" id="gen-preview-content" contenteditable="true"></div>
+</div>
+
+<div id="gen-actions" style="display:none;gap:10px;margin-top:12px;">
+  <button class="btn btn-outline btn-block" onclick="GeneratorWorkflow.saveDocument('other')" style="flex:1;">💾 保存</button>
+  <button class="btn btn-primary btn-block" onclick="GeneratorWorkflow.exportDocx()" style="flex:1;">📥 导出 .docx</button>
+</div>
+<input type="hidden" id="gen-agegroup" value="">
+
+<script>
+(function initOther() {
+  GeneratorWorkflow.init();
+  GeneratorWorkflow._currentType = 'other';
+  GeneratorWorkflow._renderTemplateList(document.getElementById('template-list'));
+})();
+</script>

@@ -1,0 +1,67 @@
+/* ============================================
+   Theme System: 幼师AI助手
+   ============================================ */
+
+:root {
+  /* Default Theme: Pastel Pink */
+  --primary: #FF9EB5;
+  --primary-dark: #F0728C;
+  --primary-light: #FFD4E0;
+  --bg: #FFF5F7;
+  --surface: #FFFFFF;
+  --surface-hover: #F5F5F5;
+  --text: #2D2D2D;
+  --text-secondary: #6B6B6B;
+  --text-muted: #999999;
+  --border: #E8E8E8;
+  --shadow: 0 2px 12px rgba(255, 158, 181, 0.15);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --nav-bg: #FFFFFF;
+  --card-bg: #FFFFFF;
+  --input-bg: #F8F8F8;
+  --success: #52C41A;
+  --warning: #FAAD14;
+  --error: #FF4D4F;
+  --font: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-size-sm: 13px;
+  --font-size: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 22px;
+}
+
+[data-theme="forest"] {
+  --primary: #52C41A;
+  --primary-dark: #389E0D;
+  --primary-light: #D9F7BE;
+  --bg: #F0F9EC;
+  --surface: #FFFFFF;
+  --shadow: 0 2px 12px rgba(82, 196, 26, 0.15);
+}
+
+[data-theme="ocean"] {
+  --primary: #1890FF;
+  --primary-dark: #096DD9;
+  --primary-light: #BAE7FF;
+  --bg: #F0F7FF;
+  --surface: #FFFFFF;
+  --shadow: 0 2px 12px rgba(24, 144, 255, 0.15);
+}
+
+[data-theme="warm"] {
+  --primary: #FA8C16;
+  --primary-dark: #D46B08;
+  --primary-light: #FFE7BA;
+  --bg: #FFF9F0;
+  --surface: #FFFFFF;
+  --shadow: 0 2px 12px rgba(250, 140, 22, 0.15);
+}
+
+[data-theme="lavender"] {
+  --primary: #9254DE;
+  --primary-dark: #722ED1;
+  --primary-light: #EFDBFF;
+  --bg: #FAF5FF;
+  --surface: #FFFFFF;
+  --shadow: 0 2px 12px rgba(146, 84, 222, 0.15);
+}

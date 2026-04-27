@@ -1,0 +1,99 @@
+/* ============================================
+   Resource Library Manager — 优秀资源库
+   幼师AI助手
+   ============================================ */
+
+var ResourceLibrary = {
+
+  /**
+   * Upload resources from file input
+   * @param {FileList} files
+   * @param {string} type - 'plan' | 'observation' | 'paper'
+   * @param {function} onProgress - callback(processed, total, fileName)
+   */
+  uploadFiles: async function(files, type, onProgress) {
+    var results = [];
+    var total = files.length;
+
+    for (var i = 0; i < files.length; i++) {
+      var file = files[i];
+      if (onProgress) onProgress(i, total, file.name);
+
+      try {
+        var ext = file.name.split('.').pop().toLowerCase();
+        var record = {
+          type: type,
+          fileName: file.name,
+          fileSize: file.size,
+          fileFormat: ext === 'pdf' ? 'pdf' : 'docx'
+        };
+
+        if (ext === 'pdf') {
+          var pdfResult = await TemplateParser.parsePdf(file);
+          record.rawText = pdfResult.fullText;
+          record.rawHtml = '';
+          record.sections = [];
+        } else {
+          var docxResult = await TemplateParser.parseDocx(file);
+          record.rawHtml = docxResult.html;
+          record.rawText = docxResult.html.replace(/<[^>]+>/g, '');
+          record.sections = docxResult.sections;
+        }
+
+        var id = await ResourceDB.add(record);
+        results.push({ id: id, fileName: file.name, success: true });
+      } catch(e) {
+        results.push({ fileName: file.name, success: false, error: e.message });
+      }
+    }
+
+    if (onProgress) onProgress(total, total, '');
+    return results;
+  },
+
+  /**
+   * Get resources grouped by type for display
+   */
+  getStats: async function() {
+    return await ResourceDB.countByType();
+  },
+
+  /**
+   * Get all resources, optionally filtered by type
+   */
+  getResources: async function(type) {
+    return await ResourceDB.getAll(type);
+  },
+
+  /**
+   * Delete a resource by id
+   */
+  deleteResource: async function(id) {
+    return await ResourceDB.remove(id);
+  },
+
+  /**
+   * Get resource content summaries for AI context injection
+   * Used by prompt-builder to automatically include resource context
+   */
+  getContextForType: async function(type) {
+    var summaries = await ResourceDB.getSummaries(type);
+
+    if (summaries.length === 0) return '';
+
+    var previews = summaries.map(function(s, idx) {
+      var text = s.content || '';
+      // Strip HTML tags for plain text preview
+      var plain = text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+      var preview = plain.substring(0, 200);
+      if (plain.length > 200) preview += '...';
+      return (idx + 1) + '. 《' + s.fileName.replace(/\.(docx|pdf)$/i, '') + '》\n' + preview;
+    });
+
+    var typeName = { plan: '教案', observation: '观察记录', paper: '论文' }[type] || '文档';
+
+    return '用户已上传 ' + summaries.length + ' 篇优秀' + typeName + '供参考学习。\n'
+      + '以下是这些文档的内容摘要，请在生成时参考其风格和质量标准：\n\n'
+      + previews.join('\n\n');
+  }
+};

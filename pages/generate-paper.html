@@ -1,0 +1,19 @@
+<div class="page-header">
+  <div class="back-row">
+    <span class="back-btn" onclick="Router.navigate('home')">←</span>
+    <h2>📄 论文生成</h2>
+  </div>
+  <div class="subtitle">请选择你的起点</div>
+</div>
+
+<div class="entry-btn" onclick="PaperWorkflow.startWithTopic()">
+  <div class="entry-icon">✍️</div>
+  <div class="entry-title">我有题目</div>
+  <div class="entry-desc">已有论文题目，直接进入大纲和内容生成</div>
+</div>
+
+<div class="entry-btn" onclick="PaperWorkflow.startWithoutTopic()">
+  <div class="entry-icon">💡</div>
+  <div class="entry-title">还没有题目</div>
+  <div class="entry-desc">描述研究方向，让 AI 帮你推荐 5 个选题</div>
+</div>
