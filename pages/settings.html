@@ -1,43 +1,59 @@
-<div class="page-header" style="padding:2px 0 4px;">
-  <h2 style="font-size:18px;">⚙️ 设置</h2>
+<div class="page-header">
+  <h2>⚙️ 设置</h2>
 </div>
 
 <!-- API Settings -->
-<div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);">
-  <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;" id="api-preset-selector">
-    <span class="tag active" style="padding:3px 10px;font-size:11px;" data-preset="deepseek" onclick="SettingsPage.selectPreset('deepseek')">DeepSeek</span>
-    <span class="tag" style="padding:3px 10px;font-size:11px;" data-preset="qwen" onclick="SettingsPage.selectPreset('qwen')">通义千问</span>
-    <span class="tag" style="padding:3px 10px;font-size:11px;" data-preset="custom" onclick="SettingsPage.selectPreset('custom')">自定义</span>
-    <span style="flex:1;"></span>
-    <button class="btn btn-outline btn-sm" style="padding:4px 10px;font-size:11px;" onclick="SettingsPage.testConnection()">测试</button>
+<div class="card">
+  <div class="card-title">🤖 AI API 设置</div>
+
+  <label class="label">API 预设</label>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;" id="api-preset-selector">
+    <span class="tag active" data-preset="deepseek" onclick="SettingsPage.selectPreset('deepseek')">DeepSeek</span>
+    <span class="tag" data-preset="qwen" onclick="SettingsPage.selectPreset('qwen')">通义千问</span>
+    <span class="tag" data-preset="custom" onclick="SettingsPage.selectPreset('custom')">自定义</span>
   </div>
-  <input class="input-box" id="set-api-url" placeholder="API 地址" style="font-size:12px;padding:7px 10px;margin-bottom:5px;" onchange="SettingsPage.onFieldChange()">
-  <div style="display:flex;gap:5px;">
-    <input class="input-box" id="set-api-key" type="password" placeholder="API Key" style="font-size:12px;padding:7px 10px;flex:1;" onchange="SettingsPage.onFieldChange()">
-    <input class="input-box" id="set-model" placeholder="模型" style="font-size:12px;padding:7px 10px;width:130px;" onchange="SettingsPage.onFieldChange()">
+
+  <label class="label">API 地址</label>
+  <input class="input-box" id="set-api-url" placeholder="https://api.deepseek.com/v1" style="font-size:13px;margin-bottom:8px;" onchange="SettingsPage.onFieldChange()">
+
+  <label class="label">API Key</label>
+  <input class="input-box" id="set-api-key" type="password" placeholder="sk-..." style="font-size:13px;margin-bottom:8px;" onchange="SettingsPage.onFieldChange()">
+
+  <label class="label">模型名称</label>
+  <div style="display:flex;gap:8px;">
+    <input class="input-box" id="set-model" placeholder="deepseek-chat" style="font-size:13px;flex:1;" onchange="SettingsPage.onFieldChange()">
+    <button class="btn btn-outline btn-sm" onclick="SettingsPage.testConnection()">测试连接</button>
   </div>
-  <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">💡 兼容 OpenAI 的 API 均可使用，中转站选「自定义」</div>
+
+  <div style="font-size:11px;color:var(--text-muted);margin-top:8px;background:#FFFBF0;padding:8px;border-radius:8px;">
+    💡 兼容 OpenAI 的 API 均可使用，中转站请选择「自定义」填入地址和 Key
+  </div>
 </div>
 
-<!-- Theme + Name -->
-<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);">
-  <div style="display:flex;gap:5px;" id="theme-selector">
-    <div style="width:26px;height:26px;border-radius:13px;background:linear-gradient(135deg,#FF9EB5,#F0728C);cursor:pointer;" data-theme="pastel" onclick="SettingsPage.setTheme('pastel')"></div>
-    <div style="width:26px;height:26px;border-radius:13px;background:linear-gradient(135deg,#52C41A,#389E0D);cursor:pointer;" data-theme="forest" onclick="SettingsPage.setTheme('forest')"></div>
-    <div style="width:26px;height:26px;border-radius:13px;background:linear-gradient(135deg,#1890FF,#096DD9);cursor:pointer;" data-theme="ocean" onclick="SettingsPage.setTheme('ocean')"></div>
-    <div style="width:26px;height:26px;border-radius:13px;background:linear-gradient(135deg,#FA8C16,#D46B08);cursor:pointer;" data-theme="warm" onclick="SettingsPage.setTheme('warm')"></div>
-    <div style="width:26px;height:26px;border-radius:13px;background:linear-gradient(135deg,#9254DE,#722ED1);cursor:pointer;" data-theme="lavender" onclick="SettingsPage.setTheme('lavender')"></div>
+<!-- Theme -->
+<div class="card">
+  <div class="card-title">🎨 外观主题</div>
+  <div style="display:flex;gap:8px;" id="theme-selector">
+    <div style="width:40px;height:40px;border-radius:20px;background:linear-gradient(135deg,#FF9EB5,#F0728C);cursor:pointer;" data-theme="pastel" onclick="SettingsPage.setTheme('pastel')"></div>
+    <div style="width:40px;height:40px;border-radius:20px;background:linear-gradient(135deg,#52C41A,#389E0D);cursor:pointer;" data-theme="forest" onclick="SettingsPage.setTheme('forest')"></div>
+    <div style="width:40px;height:40px;border-radius:20px;background:linear-gradient(135deg,#1890FF,#096DD9);cursor:pointer;" data-theme="ocean" onclick="SettingsPage.setTheme('ocean')"></div>
+    <div style="width:40px;height:40px;border-radius:20px;background:linear-gradient(135deg,#FA8C16,#D46B08);cursor:pointer;" data-theme="warm" onclick="SettingsPage.setTheme('warm')"></div>
+    <div style="width:40px;height:40px;border-radius:20px;background:linear-gradient(135deg,#9254DE,#722ED1);cursor:pointer;" data-theme="lavender" onclick="SettingsPage.setTheme('lavender')"></div>
   </div>
-  <input class="input-box" id="set-name" placeholder="称呼" style="font-size:12px;padding:7px 10px;flex:1;" onchange="SettingsPage.onFieldChange()">
+</div>
+
+<!-- Profile -->
+<div class="card">
+  <div class="card-title">👤 个人信息</div>
+  <label class="label">称呼</label>
+  <input class="input-box" id="set-name" placeholder="计老师" style="font-size:13px;" onchange="SettingsPage.onFieldChange()">
 </div>
 
 <!-- Footer -->
-<div style="display:flex;align-items:center;justify-content:space-between;">
-  <span style="font-size:11px;color:var(--text-muted);">📱 幼师AI助手 v1.0</span>
-  <span>
-    <button class="btn btn-outline btn-sm" style="padding:3px 8px;font-size:10px;" onclick="SettingsPage.exportAll()">导出</button>
-    <button class="btn btn-outline btn-sm" style="padding:3px 8px;font-size:10px;color:var(--error);border-color:var(--error);margin-left:4px;" onclick="SettingsPage.clearAll()">清除</button>
-  </span>
+<div style="text-align:center;padding:8px 0 16px;">
+  <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">📱 Alice专属 v5.20</div>
+  <button class="btn btn-outline btn-sm" onclick="SettingsPage.exportAll()">导出数据</button>
+  <button class="btn btn-outline btn-sm" style="margin-left:6px;color:var(--error);border-color:var(--error);" onclick="SettingsPage.clearAll()">清除数据</button>
 </div>
 
 <script>
@@ -60,7 +76,7 @@ var SettingsPage = {
     document.getElementById('set-api-url').value = apiUrl || '';
     document.getElementById('set-api-key').value = apiKey || '';
     document.getElementById('set-model').value = model || '';
-    document.getElementById('set-name').value = name === '老师' ? '' : name;
+    document.getElementById('set-name').value = name === '计老师' ? '' : name;
 
     this.selectPreset(this._preset);
     this._highlightTheme(theme);

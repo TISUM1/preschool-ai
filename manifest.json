@@ -1,6 +1,6 @@
 {
-  "name": "幼师AI助手",
-  "short_name": "AI幼师",
+  "name": "Alice专属",
+  "short_name": "Alice",
   "description": "幼儿园教师AI助手 - 生成高质量教案、观察记录、期刊论文",
   "start_url": "./index.html",
   "display": "standalone",

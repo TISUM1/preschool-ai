@@ -40,7 +40,7 @@ var AppSettings = {
 
   // --- Appearance ---
   getTheme: function() { return this.get('theme', 'pastel'); },
-  getTeacherName: function() { return this.get('teacherName', '老师'); },
+  getTeacherName: function() { return this.get('teacherName', '计老师'); },
 
   // --- API Presets (stored as JSON) ---
   getPresets: async function() {
