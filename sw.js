@@ -2,7 +2,7 @@
    Service Worker — 幼师AI助手 PWA
    ============================================ */
 
-var CACHE_NAME = 'preschool-ai-v2';
+var CACHE_NAME = 'preschool-ai-v3';
 var STATIC_ASSETS = [
   './index.html',
   './css/style.css',
@@ -29,14 +29,11 @@ var STATIC_ASSETS = [
   './pages/generate-other.html',
   './pages/documents.html',
   './pages/document-view.html',
-  './offline.html'
-];
-
-var CDN_ASSETS = [
-  'https://cdn.jsdelivr.net/npm/dexie/dist/dexie.min.js',
-  'https://cdn.jsdelivr.net/npm/mammoth/mammoth.browser.min.js',
-  'https://cdn.jsdelivr.net/npm/pdfjs-dist/build/pdf.min.js',
-  'https://cdn.jsdelivr.net/npm/docx/build/index.min.js'
+  './offline.html',
+  './vendor/dexie.min.js',
+  './vendor/mammoth.browser.min.js',
+  './vendor/pdf.min.js',
+  './vendor/docx.min.js'
 ];
 
 // Install: pre-cache static assets
@@ -73,20 +70,6 @@ self.addEventListener('fetch', function(event) {
 
   // Skip API calls (DeepSeek, etc.)
   if (url.includes('api.deepseek.com') || url.includes('dashscope.aliyuncs.com')) return;
-
-  // CDN assets: cache-first
-  if (CDN_ASSETS.some(function(cdn) { return url.includes(cdn.split('/').pop()); })) {
-    event.respondWith(
-      caches.match(event.request).then(function(cached) {
-        return cached || fetch(event.request).then(function(response) {
-          var clone = response.clone();
-          caches.open(CACHE_NAME).then(function(cache) { cache.put(event.request, clone); });
-          return response;
-        });
-      })
-    );
-    return;
-  }
 
   // HTML pages: network-first with offline fallback
   if (event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html')) {
