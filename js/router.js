@@ -50,17 +50,18 @@ const Router = {
 
     container.innerHTML = html;
 
-    // Execute inline scripts: innerHTML doesn't run <script> tags, so we
-    // clone each script node to force execution.
-    var scripts = container.querySelectorAll('script');
-    scripts.forEach(function(oldScript) {
-      var newScript = document.createElement('script');
-      if (oldScript.src) {
-        newScript.src = oldScript.src;
-      } else {
-        newScript.textContent = oldScript.textContent;
-      }
-      oldScript.parentNode.replaceChild(newScript, oldScript);
+    // Execute inline scripts: innerHTML doesn't run <script> tags.
+    // Collect all inline scripts, remove originals, then append to body.
+    var oldScripts = container.querySelectorAll('script');
+    var codeList = [];
+    oldScripts.forEach(function(s) {
+      if (!s.src) codeList.push(s.textContent);
+      s.parentNode.removeChild(s);
+    });
+    codeList.forEach(function(code) {
+      var s = document.createElement('script');
+      s.textContent = code;
+      container.appendChild(s);
     });
 
     requestAnimationFrame(() => {
