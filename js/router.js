@@ -49,6 +49,20 @@ const Router = {
     }
 
     container.innerHTML = html;
+
+    // Execute inline scripts: innerHTML doesn't run <script> tags, so we
+    // clone each script node to force execution.
+    var scripts = container.querySelectorAll('script');
+    scripts.forEach(function(oldScript) {
+      var newScript = document.createElement('script');
+      if (oldScript.src) {
+        newScript.src = oldScript.src;
+      } else {
+        newScript.textContent = oldScript.textContent;
+      }
+      oldScript.parentNode.replaceChild(newScript, oldScript);
+    });
+
     requestAnimationFrame(() => {
       container.style.opacity = '1';
       container.style.transition = 'opacity 0.2s ease';

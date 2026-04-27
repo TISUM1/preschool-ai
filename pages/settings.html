@@ -119,12 +119,17 @@ var SettingsPage = {
   },
 
   testConnection: async function() {
-    this.saveApiSettings();
+    await this.saveApiSettings();
+    var key = document.getElementById('set-api-key').value.trim();
+    if (!key) {
+      Toast.show('请先填写 API Key', 'error');
+      return;
+    }
     App.showLoading('测试连接...');
     try {
-      await ApiClient.chat([{ role: 'user', content: '你好，请回复"连接成功"' }], { stream: false, max_tokens: 20 });
+      var msg = await ApiClient.chat([{ role: 'user', content: '你好，回复"连接成功"' }], { stream: false, max_tokens: 20 });
       App.hideLoading();
-      Toast.show('连接成功！', 'success');
+      Toast.show('连接成功', 'success');
     } catch(e) {
       App.hideLoading();
       Toast.show('连接失败: ' + e.message, 'error');
