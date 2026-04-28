@@ -310,6 +310,8 @@ var PaperWorkflow = {
         + '</div>';
     }
 
+    html += '<button class="btn btn-outline btn-block" style="margin-top:10px;" onclick="PaperWorkflow.generateTopics()">🔄 重新生成选题</button>';
+
     container.innerHTML = html;
     container.style.display = 'block';
   },
