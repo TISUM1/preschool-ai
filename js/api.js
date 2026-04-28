@@ -7,6 +7,24 @@
 var ApiClient = {
 
   /**
+   * Build the full chat completions URL from the configured API URL.
+   * Handles common user input variations gracefully.
+   */
+  _buildUrl: function() {
+    var url = (AppSettings.getApiUrl() || '').trim().replace(/\/+$/, '');
+    if (!url) throw new Error('请先在设置中配置 API 地址');
+
+    // Already a full /chat/completions endpoint — use as-is
+    if (url.endsWith('/chat/completions')) return url;
+
+    // URL already includes /v1 — just append chat/completions
+    if (url.indexOf('/v1') !== -1) return url + '/chat/completions';
+
+    // Bare domain or base path — assume OpenAI-compatible /v1/chat/completions
+    return url + '/v1/chat/completions';
+  },
+
+  /**
    * Build request body compatible with OpenAI Chat Completions format
    */
   buildRequest: function(messages, options) {
@@ -25,22 +43,29 @@ var ApiClient = {
    * Non-streaming chat completion
    */
   chat: async function(messages, options) {
-    var apiUrl = AppSettings.getApiUrl();
     var apiKey = AppSettings.getApiKey();
-
     if (!apiKey) throw new Error('请先在设置中配置 API Key');
 
     var body = this.buildRequest(messages, options);
     body.stream = false;
 
-    var resp = await fetch(apiUrl + '/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + apiKey
-      },
-      body: JSON.stringify(body)
-    });
+    var url = this._buildUrl();
+    console.log('[ApiClient] POST', url);
+
+    var resp;
+    try {
+      resp = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + apiKey
+        },
+        body: JSON.stringify(body)
+      });
+    } catch(e) {
+      console.error('[ApiClient] fetch failed:', e);
+      throw new Error('连接失败，可能原因：\n1. API 地址不正确或无法访问\n2. 该 API 不支持浏览器直接调用（CORS 限制）\n3. 网络连接异常\n\n请检查 API 地址或尝试其他 API 服务商');
+    }
 
     if (!resp.ok) {
       var errText = await resp.text();
@@ -56,22 +81,29 @@ var ApiClient = {
    * Returns full text when complete
    */
   chatStream: async function(messages, onChunk, options) {
-    var apiUrl = AppSettings.getApiUrl();
     var apiKey = AppSettings.getApiKey();
-
     if (!apiKey) throw new Error('请先在设置中配置 API Key');
 
     var body = this.buildRequest(messages, options);
     body.stream = true;
 
-    var resp = await fetch(apiUrl + '/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + apiKey
-      },
-      body: JSON.stringify(body)
-    });
+    var url = this._buildUrl();
+    console.log('[ApiClient] POST (stream)', url);
+
+    var resp;
+    try {
+      resp = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + apiKey
+        },
+        body: JSON.stringify(body)
+      });
+    } catch(e) {
+      console.error('[ApiClient] fetch failed:', e);
+      throw new Error('连接失败，可能原因：\n1. API 地址不正确或无法访问\n2. 该 API 不支持浏览器直接调用（CORS 限制）\n3. 网络连接异常\n\n请检查 API 地址或尝试其他 API 服务商');
+    }
 
     if (!resp.ok) {
       var errText = await resp.text();
@@ -118,6 +150,7 @@ var ApiClient = {
     var map = {
       401: 'API Key 无效，请检查设置',
       403: 'API 访问被拒绝，请检查 Key 权限',
+      404: 'API 地址不存在（404），请检查 API 地址是否正确',
       429: '请求过于频繁，请稍后再试',
       500: 'AI 服务暂时不可用，请稍后重试',
       502: '网络连接异常，请检查网络'
