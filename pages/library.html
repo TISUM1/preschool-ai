@@ -89,8 +89,8 @@ var LibraryPage = {
     var files = event.target.files;
     if (!files.length) return;
 
-    // Ask for type
-    var type = await LibraryPage._promptType();
+    // Use current filter if set, otherwise ask
+    var type = LibraryPage._currentType || await LibraryPage._promptType();
     if (!type) { event.target.value = ''; return; }
 
     App.showLoading('正在上传并解析...');
