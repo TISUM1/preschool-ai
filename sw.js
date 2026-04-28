@@ -34,6 +34,7 @@ var STATIC_ASSETS = [
   './vendor/dexie.min.js',
   './vendor/mammoth.browser.min.js',
   './vendor/pdf.min.js',
+  './vendor/pdf.worker.min.js',
   './vendor/docx.min.js'
 ];
 

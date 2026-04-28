@@ -3,6 +3,8 @@
    幼师AI助手 — Supports multi-file parsing
    ============================================ */
 
+pdfjsLib.GlobalWorkerOptions.workerSrc = './vendor/pdf.worker.min.js';
+
 var TemplateParser = {
 
   /**
