@@ -166,6 +166,30 @@ var PaperWorkflow = {
     // Topic will be pre-filled by the page-load handler
   },
 
+  confirmOutline: function() {
+    // Save current outline state from editor
+    var outlineItems = document.querySelectorAll('.outline-item input');
+    if (outlineItems.length > 0) {
+      var updatedOutline = '';
+      for (var i = 0; i < outlineItems.length; i++) {
+        updatedOutline += (i + 1) + '. ' + outlineItems[i].value + '\n';
+      }
+      this.state.outline = updatedOutline;
+    }
+
+    Toast.show('大纲已确认，请生成论文内容');
+
+    // Hide confirm/regen, show fill button + content area
+    var confirmBtn = document.getElementById('hs-btn-confirm');
+    var regenBtn = document.getElementById('hs-btn-regen');
+    var fillBtn = document.getElementById('hs-btn-fill');
+    var step4 = document.getElementById('hs-step4');
+    if (confirmBtn) confirmBtn.style.display = 'none';
+    if (regenBtn) regenBtn.style.display = 'none';
+    if (fillBtn) fillBtn.style.display = 'block';
+    if (step4) step4.style.display = 'block';
+  },
+
   // --- Common ---
 
   saveDocument: async function() {

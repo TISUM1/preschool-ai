@@ -52,15 +52,20 @@ function PaperWorkflow_nsContinueToOutline() {
   Router.navigate('generate-paper-hastopic');
 }
 
-// Override selectTopic to auto-navigate
-var origSelectTopic = PaperWorkflow.selectTopic;
+// Override selectTopic: only highlight & show continue, don't navigate
 PaperWorkflow.selectTopic = function(index) {
-  origSelectTopic.call(PaperWorkflow, index);
-  // Show continue section
+  var topic = PaperWorkflow.state.topicOptions[index];
+  if (!topic) return;
+  PaperWorkflow.state.topic = topic;
+  PaperWorkflow.state.topicSource = 'none';
+
+  // Highlight selected
   document.getElementById('ns-dot1').classList.add('done');
   document.getElementById('topic-options').querySelectorAll('.topic-option').forEach(function(el, i) {
     el.classList.toggle('selected', i === index);
   });
+
+  // Show word count + continue section
   var cont = document.getElementById('ns-continue');
   if (cont) cont.style.display = 'block';
 };

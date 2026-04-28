@@ -28,21 +28,27 @@
   </div>
 </div>
 
+<!-- Generate Outline Button -->
+<button class="btn btn-primary btn-block" id="hs-btn-outline" style="font-size:16px;" onclick="PaperWorkflow.generateOutline()">
+  🤖 生成论文大纲
+</button>
+
 <!-- Step 3: Outline -->
-<div class="card" id="hs-step3">
+<div class="card" id="hs-step3" style="display:none;">
   <div class="card-title">📋 论文大纲</div>
   <div id="outline-preview" style="font-size:12px;color:var(--text-muted);padding:20px;text-align:center;background:#F8F8F8;border-radius:var(--radius-sm);">
     点击下方按钮自动生成大纲
   </div>
   <div id="outline-editor" style="display:none;"></div>
-  <div id="outline-actions" style="display:none;margin-top:10px;text-align:right;gap:8px;">
-    <button class="btn btn-outline btn-sm" onclick="PaperWorkflow.generateOutline()">🔄 重新生成</button>
-  </div>
 </div>
 
-<!-- Generate Outline Button -->
-<button class="btn btn-primary btn-block" id="hs-btn-outline" style="font-size:16px;" onclick="PaperWorkflow.generateOutline()">
-  🤖 生成论文大纲
+<!-- Confirm Outline -->
+<button class="btn btn-primary btn-block" id="hs-btn-confirm" style="display:none;font-size:16px;" onclick="PaperWorkflow.confirmOutline()">
+  ✅ 确认大纲，开始生成论文
+</button>
+
+<button class="btn btn-outline btn-block" id="hs-btn-regen" style="display:none;font-size:14px;" onclick="PaperWorkflow.generateOutline()">
+  🔄 重新生成大纲
 </button>
 
 <!-- Step 4: Content Fill -->
@@ -69,7 +75,12 @@ function PaperWorkflow_selectWords(el) {
 }
 
 (function initHasTopic() {
+  // Save topic before init clears state
+  var savedTopic = PaperWorkflow.state.topic;
+  var savedSource = PaperWorkflow.state.topicSource;
   PaperWorkflow.init();
+  PaperWorkflow.state.topic = savedTopic;
+  PaperWorkflow.state.topicSource = savedSource || 'has';
 
   // Pre-fill topic if coming from AI topic selection
   if (PaperWorkflow.state.topic) {
@@ -77,30 +88,21 @@ function PaperWorkflow_selectWords(el) {
     if (topicInput) topicInput.value = PaperWorkflow.state.topic;
   }
 
-  // Listen for outline generation to update UI
+  // After outline generated, show outline editor + confirm button
   var origGenerateOutline = PaperWorkflow.generateOutline;
   PaperWorkflow.generateOutline = async function() {
     await origGenerateOutline.call(PaperWorkflow);
-    // After outline generated, update step indicators
+    // Update step indicators
     document.getElementById('hs-dot1').classList.add('done');
     document.getElementById('hs-dot2').classList.add('done');
-    document.getElementById('hs-dot3').classList.add('current');
-    document.getElementById('hs-dot3').classList.remove('done');
-
-    // Hide outline button, show fill button
-    var btn = document.getElementById('hs-btn-outline');
-    if (btn) btn.style.display = 'none';
-    var fillBtn = document.getElementById('hs-btn-fill');
-    if (fillBtn) fillBtn.style.display = 'block';
-  };
-
-  // Listen for content fill to update UI
-  var origFillContent = PaperWorkflow.fillContent;
-  PaperWorkflow.fillContent = async function() {
-    await origFillContent.call(PaperWorkflow);
     document.getElementById('hs-dot3').classList.add('done');
     document.getElementById('hs-dot4').classList.add('current');
-    document.getElementById('hs-step4').style.display = 'block';
+
+    // Show outline card, confirm + regen buttons, hide generate button
+    document.getElementById('hs-step3').style.display = 'block';
+    document.getElementById('hs-btn-outline').style.display = 'none';
+    document.getElementById('hs-btn-confirm').style.display = 'block';
+    document.getElementById('hs-btn-regen').style.display = 'block';
     document.getElementById('hs-btn-fill').style.display = 'none';
   };
 })();
