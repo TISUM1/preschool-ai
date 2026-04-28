@@ -43,6 +43,7 @@ var ResourceLibrary = {
         var id = await ResourceDB.add(record);
         results.push({ id: id, fileName: file.name, success: true });
       } catch(e) {
+        console.error('[ResourceLibrary] 上传失败:', file.name, e);
         results.push({ fileName: file.name, success: false, error: e.message });
       }
     }

@@ -100,10 +100,20 @@ var LibraryPage = {
     App.hideLoading();
     event.target.value = '';
 
-    var success = results.filter(function(r) { return r.success; }).length;
-    var fail = results.filter(function(r) { return !r.success; }).length;
-    if (success > 0) Toast.show('成功上传 ' + success + ' 个文件');
-    if (fail > 0) Toast.show(fail + ' 个文件上传失败', 'error');
+    var success = results.filter(function(r) { return r.success; });
+    var failed  = results.filter(function(r) { return !r.success; });
+
+    if (success.length > 0) Toast.show('成功上传 ' + success.length + ' 个文件');
+
+    if (failed.length > 0) {
+      if (failed.length <= 2) {
+        for (var i = 0; i < failed.length; i++) {
+          Toast.show('《' + failed[i].fileName + '》上传失败：' + (failed[i].error || '未知错误'), 'error');
+        }
+      } else {
+        Toast.show(failed.length + ' 个文件上传失败，首个：' + (failed[0].error || '未知错误'), 'error');
+      }
+    }
 
     await this.loadList();
   },
@@ -119,6 +129,7 @@ var LibraryPage = {
   _promptType: function() {
     return new Promise(function(resolve) {
       var type = prompt('请选择资源类型：\n1 - 教案\n2 - 观察记录\n3 - 论文', '1');
+      if (type === null) { resolve(null); return; }
       var map = { '1': 'plan', '2': 'observation', '3': 'paper' };
       resolve(map[type] || 'plan');
     });
