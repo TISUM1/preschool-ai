@@ -58,7 +58,7 @@ var PromptBuilder = {
       resourceContext = await ResourceLibrary.getContextForType(type);
     }
     if (resourceContext) {
-      system += '\n\n--- 优秀范文参考（请内化其风格和质量标准）---\n' + resourceContext;
+      system += '\n\n--- 优秀论文范文（请仔细学习以下范文的题目命名、章节结构和论证逻辑，务必参考其框架）---\n' + resourceContext;
     }
 
     // 3. Template content (current session reference)
@@ -115,7 +115,7 @@ var PromptBuilder = {
           parts.push('请为以下论文题目生成一个符合期刊发表要求的大纲：');
           parts.push('题目：' + paperState.topic);
           parts.push('预计字数：' + (paperState.wordCount || 4000) + '字');
-          parts.push('\n请输出论文大纲（含各部分标题和简要说明）。');
+          parts.push('\n请输出论文大纲（含各部分标题和简要说明）。请参考系统提示词中优秀论文范文的章节结构和标题命名方式来设计大纲。');
 
         } else if (paperState.stage === 'content') {
           parts.push('请根据以下论文大纲，填充完整的论文内容。');
