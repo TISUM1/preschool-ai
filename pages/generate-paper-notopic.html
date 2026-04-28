@@ -25,28 +25,14 @@
 <!-- Topic Options -->
 <div id="topic-options" style="display:none;margin-top:12px;"></div>
 
-<!-- Continue to word count / outline / content -->
+<!-- Continue to outline -->
 <div id="ns-continue" style="display:none;margin-top:12px;">
-  <div class="card">
-    <div class="card-title">📏 选择字数</div>
-    <div class="word-count-options">
-      <span class="tag" data-words="3000" onclick="PaperWorkflow_selectWords2(this)">3000字</span>
-      <span class="tag active" data-words="4000" onclick="PaperWorkflow_selectWords2(this)">4000字</span>
-      <span class="tag" data-words="5000" onclick="PaperWorkflow_selectWords2(this)">5000字</span>
-    </div>
-  </div>
   <button class="btn btn-primary btn-block" style="font-size:16px;" onclick="PaperWorkflow_nsContinueToOutline()">
     🤖 生成论文大纲
   </button>
 </div>
 
 <script>
-function PaperWorkflow_selectWords2(el) {
-  el.parentElement.querySelectorAll('.tag').forEach(function(t) { t.classList.remove('active'); });
-  el.classList.add('active');
-  PaperWorkflow.state.wordCount = parseInt(el.dataset.words);
-}
-
 function PaperWorkflow_nsContinueToOutline() {
   // Navigate to has-topic flow
   Router.navigate('generate-paper-hastopic');
