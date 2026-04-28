@@ -2,7 +2,7 @@
    Service Worker — 幼师AI助手 PWA
    ============================================ */
 
-var CACHE_NAME = 'preschool-ai-v4';
+var CACHE_NAME = 'preschool-ai-v5';
 var STATIC_ASSETS = [
   './index.html',
   './css/style.css',
