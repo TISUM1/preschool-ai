@@ -40,6 +40,35 @@ var ApiClient = {
   },
 
   /**
+   * Safely parse response body — handles HTML pages returned by wrong endpoints
+   */
+  _parseResponse: async function(resp, url) {
+    var text = await resp.text();
+
+    // If response looks like HTML, the API endpoint is probably wrong
+    if (text.trim().startsWith('<')) {
+      throw new Error('API 返回了网页而非数据（请求地址：' + url + '）\n\n'
+        + '可能原因：\n1. API 地址填写有误，该地址不是有效的 API 端点\n'
+        + '2. 该服务商的 API 路径不是标准的 /v1/chat/completions\n\n'
+        + '建议：请在设置中填写完整的 API 地址（含 /chat/completions）');
+    }
+
+    try {
+      var data = JSON.parse(text);
+      if (data.choices && data.choices[0] && data.choices[0].message) {
+        return data.choices[0].message.content;
+      }
+      if (data.error && data.error.message) {
+        throw new Error(data.error.message);
+      }
+      throw new Error('API 返回格式异常，请检查 API 地址和模型名称');
+    } catch(e) {
+      if (e.message.indexOf('API') === 0) throw e;
+      throw new Error('API 返回格式异常：' + text.substring(0, 200));
+    }
+  },
+
+  /**
    * Non-streaming chat completion
    */
   chat: async function(messages, options) {
@@ -72,8 +101,7 @@ var ApiClient = {
       throw new Error(this.formatError(resp.status, errText));
     }
 
-    var data = await resp.json();
-    return data.choices[0].message.content;
+    return await this._parseResponse(resp, url);
   },
 
   /**
@@ -108,6 +136,15 @@ var ApiClient = {
     if (!resp.ok) {
       var errText = await resp.text();
       throw new Error(this.formatError(resp.status, errText));
+    }
+
+    // Check if response is SSE or HTML before streaming
+    var contentType = resp.headers.get('Content-Type') || '';
+    if (contentType.indexOf('text/html') !== -1) {
+      var htmlText = await resp.text();
+      throw new Error('API 返回了网页而非数据（请求地址：' + url + '）\n\n'
+        + '网页开头：' + htmlText.substring(0, 120).replace(/\n/g, ' ') + '\n\n'
+        + '可能原因：API 地址不正确，请检查设置中的 API 地址');
     }
 
     var reader = resp.body.getReader();
