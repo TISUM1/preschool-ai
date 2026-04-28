@@ -1,6 +1,6 @@
 /* ============================================
    Dexie.js Database Layer — 幼师AI助手
-   Tables: resources, documents, settings
+   Tables: resources, documents, settings, classes, students
    (templates are session-only, not persisted)
    ============================================ */
 
@@ -10,6 +10,14 @@ db.version(1).stores({
   resources: '++id, type, uploadedAt',
   documents: '++id, title, type, createdAt, updatedAt, archived',
   settings: '++id, key'
+});
+
+db.version(2).stores({
+  resources: '++id, type, uploadedAt',
+  documents: '++id, title, type, createdAt, updatedAt, archived',
+  settings: '++id, key',
+  classes: '++id, grade, name',
+  students: '++id, classId, name'
 });
 
 // --- Resource CRUD ---
@@ -100,5 +108,48 @@ var SettingsDB = {
     var map = {};
     items.forEach(function(i) { map[i.key] = i.value; });
     return map;
+  }
+};
+
+// --- Class CRUD ---
+var ClassDB = {
+  add: function(cls) {
+    cls.createdAt = new Date();
+    return db.classes.add(cls);
+  },
+  getAll: function() {
+    return db.classes.orderBy('grade').toArray();
+  },
+  getById: function(id) { return db.classes.get(id); },
+  update: function(id, data) {
+    return db.classes.update(id, data);
+  },
+  remove: async function(id) {
+    await db.students.where('classId').equals(id).delete();
+    return db.classes.delete(id);
+  },
+  count: function() { return db.classes.count(); }
+};
+
+// --- Student CRUD ---
+var StudentDB = {
+  add: function(student) {
+    return db.students.add(student);
+  },
+  getByClass: function(classId) {
+    return db.students.where('classId').equals(classId).toArray();
+  },
+  getById: function(id) { return db.students.get(id); },
+  update: function(id, data) {
+    return db.students.update(id, data);
+  },
+  remove: function(id) {
+    return db.students.delete(id);
+  },
+  countByClass: function(classId) {
+    return db.students.where('classId').equals(classId).count();
+  },
+  getAll: function() {
+    return db.students.toArray();
   }
 };

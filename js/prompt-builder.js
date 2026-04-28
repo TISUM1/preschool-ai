@@ -20,7 +20,8 @@ var PromptBuilder = {
       + '二、观察目标 三、观察记录（客观描述幼儿的行为表现，避免主观评价，使用白描手法）\n'
       + '四、分析评价（结合《指南》各领域目标进行分析）\n'
       + '五、支持策略（针对观察结果提出具体的、可操作的教育建议）\n'
-      + '语言要求：观察描述客观、准确；分析有理论依据；建议具体可操作。',
+      + '语言要求：观察描述客观、准确；分析有理论依据；建议具体可操作。\n'
+      + '如果提供了具体学生信息，请在观察记录中结合该学生的个性特点和行为习惯进行针对性分析和建议。',
 
     paper: '你是一位幼儿教育领域的资深研究者，具有丰富的学术写作经验。\n'
       + '请根据以下要求，撰写一篇符合期刊发表标准的学术论文。\n'
@@ -105,6 +106,7 @@ var PromptBuilder = {
       if (input.topic) parts.push('观察方向：' + input.topic);
       if (input.ageGroup) parts.push('年龄段：' + input.ageGroup);
       if (input.requirements) parts.push('具体要求：' + input.requirements);
+      if (input.studentContext) parts.push('\n学生信息：\n' + input.studentContext);
       parts.push('\n请直接输出完整的观察记录内容。');
 
     } else if (type === 'paper') {

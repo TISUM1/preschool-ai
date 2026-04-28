@@ -29,6 +29,7 @@ var STATIC_ASSETS = [
   './pages/generate-other.html',
   './pages/documents.html',
   './pages/document-view.html',
+  './pages/classes.html',
   './offline.html',
   './vendor/dexie.min.js',
   './vendor/mammoth.browser.min.js',

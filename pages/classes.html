@@ -1,0 +1,322 @@
+<div id="classes-page">
+  <!-- Class List View -->
+  <div id="classes-list-view">
+    <div class="page-header">
+      <div class="back-row">
+        <span class="back-btn" onclick="Router.navigate('settings')">←</span>
+        <h2>班级管理</h2>
+      </div>
+      <div class="subtitle" id="classes-count">管理班级和学生信息</div>
+    </div>
+
+    <div id="classes-list"></div>
+
+    <button class="btn btn-primary btn-block" style="margin-top:12px;" onclick="ClassesPage.showAddForm()">+ 添加班级</button>
+
+    <!-- Inline Add/Edit Class Form -->
+    <div class="card" id="class-form-card" style="display:none;">
+      <div class="card-title" id="class-form-title">添加班级</div>
+      <label class="label">年级</label>
+      <div style="display:flex;gap:6px;margin-bottom:10px;" id="class-grade-chips">
+        <span class="chip" data-grade="大班" onclick="ClassesPage.selectGrade(this)">大班</span>
+        <span class="chip selected" data-grade="中班" onclick="ClassesPage.selectGrade(this)">中班</span>
+        <span class="chip" data-grade="小班" onclick="ClassesPage.selectGrade(this)">小班</span>
+      </div>
+      <label class="label">班级名称</label>
+      <input class="input-box" id="class-name-input" placeholder="例如：中一班" style="margin-bottom:10px;">
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline btn-sm" onclick="ClassesPage.hideClassForm()">取消</button>
+        <button class="btn btn-primary btn-sm" onclick="ClassesPage.saveClass()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Student List View (hidden by default) -->
+  <div id="students-list-view" style="display:none;">
+    <div class="page-header">
+      <div class="back-row">
+        <span class="back-btn" onclick="ClassesPage.backToClassList()">←</span>
+        <h2 id="students-class-title">学生管理</h2>
+      </div>
+      <div class="subtitle" id="students-count">共 0 名学生</div>
+    </div>
+
+    <div id="students-list"></div>
+
+    <button class="btn btn-primary btn-block" style="margin-top:12px;" onclick="ClassesPage.showStudentForm()">+ 添加学生</button>
+
+    <!-- Inline Add/Edit Student Form -->
+    <div class="card" id="student-form-card" style="display:none;">
+      <div class="card-title" id="student-form-title">添加学生</div>
+      <label class="label">姓名 <span style="color:var(--error);">*</span></label>
+      <input class="input-box" id="student-name-input" placeholder="学生姓名" style="margin-bottom:8px;">
+      <label class="label">个性特点</label>
+      <textarea class="input-box" id="student-personality" rows="2" placeholder="例如：活泼开朗，喜欢表达自己的想法" style="margin-bottom:8px;"></textarea>
+      <label class="label">行为习惯</label>
+      <textarea class="input-box" id="student-habits" rows="2" placeholder="例如：注意力集中时间较短，午睡需要安抚物" style="margin-bottom:8px;"></textarea>
+      <label class="label">备注</label>
+      <textarea class="input-box" id="student-notes" rows="2" placeholder="其他需要记录的信息" style="margin-bottom:10px;"></textarea>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline btn-sm" onclick="ClassesPage.hideStudentForm()">取消</button>
+        <button class="btn btn-primary btn-sm" onclick="ClassesPage.saveStudent()">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var ClassesPage = {
+  _view: 'classes',
+  _selectedClassId: null,
+  _editingClassId: null,
+  _editingStudentId: null,
+  _selectedGrade: '中班',
+
+  init: async function() {
+    await this.renderClassList();
+  },
+
+  // --- Grade Selection ---
+  selectGrade: function(el) {
+    var container = document.getElementById('class-grade-chips');
+    if (!container) return;
+    container.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('selected'); });
+    el.classList.add('selected');
+    this._selectedGrade = el.dataset.grade;
+  },
+
+  // --- Class List ---
+  renderClassList: async function() {
+    this._view = 'classes';
+    this._editingClassId = null;
+    document.getElementById('classes-list-view').style.display = 'block';
+    document.getElementById('students-list-view').style.display = 'none';
+    document.getElementById('class-form-card').style.display = 'none';
+
+    var classes = await ClassDB.getAll();
+    var count = classes.length;
+    document.getElementById('classes-count').textContent = '共 ' + count + ' 个班级';
+
+    if (count === 0) {
+      document.getElementById('classes-list').innerHTML = '<div style="text-align:center;padding:32px 16px;color:var(--text-muted);font-size:14px;">还没有班级，点击下方按钮添加</div>';
+      return;
+    }
+
+    // Group by grade
+    var gradeOrder = { '大班': 1, '中班': 2, '小班': 3 };
+    var gradeLabels = { '大班': '大班', '中班': '中班', '小班': '小班' };
+    var grouped = {};
+    classes.forEach(function(c) {
+      var g = c.grade || '中班';
+      if (!grouped[g]) grouped[g] = [];
+      grouped[g].push(c);
+    });
+
+    var html = '';
+    var grades = Object.keys(grouped).sort(function(a, b) { return (gradeOrder[a] || 2) - (gradeOrder[b] || 2); });
+    grades.forEach(function(g) {
+      html += '<div style="font-size:12px;font-weight:600;color:var(--text-muted);margin:12px 0 6px;">' + g + '</div>';
+      grouped[g].forEach(function(cls) {
+        var studentCount = cls._studentCount !== undefined ? cls._studentCount : '...';
+        html += '<div class="card" style="padding:12px 14px;cursor:pointer;margin-bottom:8px;" onclick="ClassesPage.openClass(' + cls.id + ')">'
+          + '<div style="display:flex;align-items:center;justify-content:space-between;">'
+          + '<div style="flex:1;">'
+          + '<div style="font-size:15px;font-weight:600;">' + App.escapeHtml(cls.name) + '</div>'
+          + '<div style="font-size:11px;color:var(--text-muted);margin-top:2px;" id="cls-count-' + cls.id + '">加载中...</div>'
+          + '</div>'
+          + '<div style="display:flex;align-items:center;gap:8px;">'
+          + '<span style="font-size:18px;color:var(--text-muted);">→</span>'
+          + '</div>'
+          + '</div>'
+          + '<button class="btn btn-outline btn-sm" style="margin-top:8px;color:var(--error);border-color:var(--error);" onclick="event.stopPropagation();ClassesPage.deleteClass(' + cls.id + ')">删除班级</button>'
+          + '</div>';
+      });
+    });
+
+    document.getElementById('classes-list').innerHTML = html;
+
+    // Load student counts
+    var self = this;
+    classes.forEach(function(cls) {
+      StudentDB.countByClass(cls.id).then(function(cnt) {
+        cls._studentCount = cnt;
+        var el = document.getElementById('cls-count-' + cls.id);
+        if (el) el.textContent = cnt + ' 名学生';
+      });
+    });
+  },
+
+  showAddForm: function() {
+    this._editingClassId = null;
+    this._selectedGrade = '中班';
+    document.getElementById('class-form-title').textContent = '添加班级';
+    document.getElementById('class-name-input').value = '';
+    document.getElementById('class-form-card').style.display = 'block';
+    document.querySelectorAll('#class-grade-chips .chip').forEach(function(c) {
+      c.classList.toggle('selected', c.dataset.grade === '中班');
+    });
+  },
+
+  hideClassForm: function() {
+    document.getElementById('class-form-card').style.display = 'none';
+    this._editingClassId = null;
+  },
+
+  saveClass: async function() {
+    var name = document.getElementById('class-name-input').value.trim();
+    if (!name) { Toast.show('请输入班级名称', 'error'); return; }
+
+    if (this._editingClassId) {
+      await ClassDB.update(this._editingClassId, { name: name, grade: this._selectedGrade });
+      Toast.show('班级已更新');
+    } else {
+      await ClassDB.add({ grade: this._selectedGrade, name: name });
+      Toast.show('班级已添加');
+    }
+    document.getElementById('class-form-card').style.display = 'none';
+    this._editingClassId = null;
+    await this.renderClassList();
+  },
+
+  deleteClass: async function(id) {
+    if (!confirm('确定要删除这个班级吗？该班级下的所有学生也会被删除，此操作不可恢复。')) return;
+    await ClassDB.remove(id);
+    Toast.show('班级已删除');
+    await this.renderClassList();
+  },
+
+  // --- Student List ---
+  openClass: async function(classId) {
+    this._view = 'students';
+    this._selectedClassId = classId;
+    this._editingStudentId = null;
+
+    var cls = await ClassDB.getById(classId);
+    if (!cls) return;
+
+    document.getElementById('classes-list-view').style.display = 'none';
+    document.getElementById('students-list-view').style.display = 'block';
+    document.getElementById('student-form-card').style.display = 'none';
+    document.getElementById('students-class-title').textContent = cls.name + '（' + (cls.grade || '中班') + '）';
+
+    await this.renderStudentList();
+  },
+
+  renderStudentList: async function() {
+    var students = await StudentDB.getByClass(this._selectedClassId);
+    document.getElementById('students-count').textContent = '共 ' + students.length + ' 名学生';
+
+    if (students.length === 0) {
+      document.getElementById('students-list').innerHTML = '<div style="text-align:center;padding:32px 16px;color:var(--text-muted);font-size:14px;">还没有学生，点击下方按钮添加</div>';
+      return;
+    }
+
+    var html = '';
+    var self = this;
+    students.forEach(function(s) {
+      var personality = s.personality || '';
+      var habits = s.habits || '';
+      var notes = s.notes || '';
+
+      html += '<div class="card" style="padding:12px 14px;margin-bottom:8px;">'
+        + '<div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="ClassesPage.toggleStudentDetail(' + s.id + ')">'
+        + '<div style="flex:1;">'
+        + '<div style="font-size:15px;font-weight:600;">' + App.escapeHtml(s.name) + '</div>'
+        + '<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">' + (personality ? personality.substring(0, 30) + (personality.length > 30 ? '...' : '') : '点击查看详情') + '</div>'
+        + '</div>'
+        + '<span style="font-size:14px;color:var(--text-muted);" id="stu-arrow-' + s.id + '">▼</span>'
+        + '</div>'
+        + '<div id="stu-detail-' + s.id + '" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">'
+        + '<div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;"><strong>个性特点：</strong>' + (personality || '未填写') + '</div>'
+        + '<div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;"><strong>行为习惯：</strong>' + (habits || '未填写') + '</div>'
+        + '<div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;"><strong>备注：</strong>' + (notes || '未填写') + '</div>'
+        + '<div style="display:flex;gap:6px;">'
+        + '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();ClassesPage.editStudent(' + s.id + ')">编辑</button>'
+        + '<button class="btn btn-outline btn-sm" style="color:var(--error);border-color:var(--error);" onclick="event.stopPropagation();ClassesPage.deleteStudent(' + s.id + ')">删除</button>'
+        + '</div></div>'
+        + '</div>';
+    });
+
+    document.getElementById('students-list').innerHTML = html;
+  },
+
+  toggleStudentDetail: function(studentId) {
+    var detail = document.getElementById('stu-detail-' + studentId);
+    var arrow = document.getElementById('stu-arrow-' + studentId);
+    if (!detail) return;
+    var isVisible = detail.style.display !== 'none';
+    detail.style.display = isVisible ? 'none' : 'block';
+    if (arrow) arrow.textContent = isVisible ? '▼' : '▲';
+  },
+
+  backToClassList: async function() {
+    document.getElementById('student-form-card').style.display = 'none';
+    this._editingStudentId = null;
+    await this.renderClassList();
+  },
+
+  // --- Student CRUD ---
+  showStudentForm: function() {
+    this._editingStudentId = null;
+    document.getElementById('student-form-title').textContent = '添加学生';
+    document.getElementById('student-name-input').value = '';
+    document.getElementById('student-personality').value = '';
+    document.getElementById('student-habits').value = '';
+    document.getElementById('student-notes').value = '';
+    document.getElementById('student-form-card').style.display = 'block';
+  },
+
+  editStudent: async function(id) {
+    var s = await StudentDB.getById(id);
+    if (!s) return;
+    this._editingStudentId = id;
+    document.getElementById('student-form-title').textContent = '编辑学生';
+    document.getElementById('student-name-input').value = s.name || '';
+    document.getElementById('student-personality').value = s.personality || '';
+    document.getElementById('student-habits').value = s.habits || '';
+    document.getElementById('student-notes').value = s.notes || '';
+    document.getElementById('student-form-card').style.display = 'block';
+    // Close all expanded details
+    document.querySelectorAll('[id^="stu-detail-"]').forEach(function(d) { d.style.display = 'none'; });
+    document.querySelectorAll('[id^="stu-arrow-"]').forEach(function(a) { a.textContent = '▼'; });
+  },
+
+  hideStudentForm: function() {
+    document.getElementById('student-form-card').style.display = 'none';
+    this._editingStudentId = null;
+  },
+
+  saveStudent: async function() {
+    var name = document.getElementById('student-name-input').value.trim();
+    if (!name) { Toast.show('请输入学生姓名', 'error'); return; }
+
+    var data = {
+      classId: this._selectedClassId,
+      name: name,
+      personality: document.getElementById('student-personality').value.trim(),
+      habits: document.getElementById('student-habits').value.trim(),
+      notes: document.getElementById('student-notes').value.trim()
+    };
+
+    if (this._editingStudentId) {
+      await StudentDB.update(this._editingStudentId, data);
+      Toast.show('学生信息已更新');
+    } else {
+      await StudentDB.add(data);
+      Toast.show('学生已添加');
+    }
+    document.getElementById('student-form-card').style.display = 'none';
+    this._editingStudentId = null;
+    await this.renderStudentList();
+  },
+
+  deleteStudent: async function(id) {
+    if (!confirm('确定要删除这名学生吗？此操作不可恢复。')) return;
+    await StudentDB.remove(id);
+    Toast.show('学生已删除');
+    await this.renderStudentList();
+  }
+};
+
+ClassesPage.init();
+</script>

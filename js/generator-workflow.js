@@ -108,6 +108,13 @@ var GeneratorWorkflow = {
     var matchFormatEl = document.getElementById('gen-match-format');
     var matchFormat = matchFormatEl ? matchFormatEl.classList.contains('on') : false;
 
+    // Collect student selection for observation type
+    var studentContext = '';
+    var studentSelector = document.getElementById('student-selector-section');
+    if (studentSelector && type === 'observation') {
+      studentContext = studentSelector.getAttribute('data-selected-students') || '';
+    }
+
     if (!topic && !requirements) {
       Toast.show('请输入主题或要求', 'error');
       return;
@@ -123,7 +130,8 @@ var GeneratorWorkflow = {
         userInput: {
           topic: topic,
           requirements: requirements,
-          ageGroup: ageGroup
+          ageGroup: ageGroup,
+          studentContext: studentContext
         }
       };
 
@@ -174,6 +182,8 @@ var GeneratorWorkflow = {
     var title = topic || ('未命名' + { plan: '教案', observation: '观察记录', other: '内容' }[type] || '文档');
 
     var ageGroup = document.getElementById('gen-agegroup') ? document.getElementById('gen-agegroup').value : '';
+    var studentSelector = document.getElementById('student-selector-section');
+    var studentContext = (studentSelector && type === 'observation') ? (studentSelector.getAttribute('data-selected-students') || '') : '';
 
     var doc = {
       title: title,
@@ -182,7 +192,8 @@ var GeneratorWorkflow = {
       userInput: {
         topic: topic,
         requirements: document.getElementById('gen-requirements') ? document.getElementById('gen-requirements').value : '',
-        ageGroup: ageGroup
+        ageGroup: ageGroup,
+        studentContext: studentContext
       },
       sections: []
     };

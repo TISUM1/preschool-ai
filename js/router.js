@@ -34,7 +34,7 @@ const Router = {
 
   async renderPage(page) {
     const container = document.getElementById('page-content');
-    const validPages = ['home', 'library', 'templates', 'generate', 'documents', 'settings'];
+    const validPages = ['home', 'library', 'templates', 'generate', 'documents', 'settings', 'classes'];
 
     if (!container) return;
     container.style.opacity = '0';

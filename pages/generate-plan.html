@@ -40,6 +40,23 @@
   <input type="hidden" id="gen-agegroup" value="中班">
 </div>
 
+<!-- Student Selector (observation type only) -->
+<div class="card" id="student-selector-section" style="display:none;">
+  <div class="card-title">👶 学生选择（可选）</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+    <div>
+      <div style="font-size:13px;font-weight:500;">随机选取</div>
+      <div style="font-size:11px;color:var(--text-muted);">AI 将随机选择一名学生进行观察</div>
+    </div>
+    <div class="toggle" id="gen-student-random" onclick="GenPage_toggleRandom(this)"></div>
+  </div>
+  <div id="gen-student-chips" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+  <div style="margin-top:10px;display:flex;gap:8px;">
+    <button class="btn btn-outline btn-sm" onclick="Router.navigate('classes')">管理班级</button>
+    <span style="font-size:11px;color:var(--text-muted);margin-top:4px;">选中学生后AI将在观察记录中融入该生个性特点</span>
+  </div>
+</div>
+
 <!-- Generate Button -->
 <button class="btn btn-primary btn-block" style="margin-top:8px;font-size:16px;" id="gen-btn">
   🤖 AI 生成
@@ -62,6 +79,104 @@ function SettingsPage_selectAge(el) {
   el.parentElement.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('selected'); });
   el.classList.add('selected');
   document.getElementById('gen-agegroup').value = el.dataset.age;
+}
+
+// --- Student Selection for Observation ---
+var GenPage_selectedStudents = [];
+
+function GenPage_toggleStudentChip(chip, studentId) {
+  chip.classList.toggle('selected');
+  var idx = GenPage_selectedStudents.indexOf(studentId);
+  if (idx > -1) {
+    GenPage_selectedStudents.splice(idx, 1);
+  } else {
+    GenPage_selectedStudents.push(studentId);
+  }
+  GenPage_updateStudentContext();
+}
+
+function GenPage_toggleRandom(toggleEl) {
+  toggleEl.classList.toggle('on');
+  var chipsContainer = document.getElementById('gen-student-chips');
+  var isRandom = toggleEl.classList.contains('on');
+  if (chipsContainer) chipsContainer.style.display = isRandom ? 'none' : 'flex';
+  if (isRandom) {
+    GenPage_pickRandomStudent();
+  } else {
+    GenPage_selectedStudents = [];
+    document.getElementById('student-selector-section').setAttribute('data-selected-students', '');
+  }
+}
+
+function GenPage_pickRandomStudent() {
+  var allChips = document.querySelectorAll('#gen-student-chips .chip');
+  if (allChips.length === 0) {
+    document.getElementById('student-selector-section').setAttribute('data-selected-students', '');
+    return;
+  }
+  var idx = Math.floor(Math.random() * allChips.length);
+  var chip = allChips[idx];
+  var info = chip.getAttribute('data-student-info') || '';
+  document.getElementById('student-selector-section').setAttribute('data-selected-students', '[随机选取] ' + info);
+}
+
+function GenPage_updateStudentContext() {
+  var allChips = document.querySelectorAll('#gen-student-chips .chip');
+  var parts = [];
+  allChips.forEach(function(c) {
+    if (c.classList.contains('selected')) {
+      var info = c.getAttribute('data-student-info');
+      if (info) parts.push(info);
+    }
+  });
+  document.getElementById('student-selector-section').setAttribute('data-selected-students', parts.join('\n'));
+}
+
+async function GenPage_loadStudentSelector() {
+  var classes = await ClassDB.getAll();
+  if (!classes || classes.length === 0) return;
+
+  var allStudents = [];
+  for (var i = 0; i < classes.length; i++) {
+    var students = await StudentDB.getByClass(classes[i].id);
+    students.forEach(function(s) {
+      s._className = classes[i].name;
+      s._grade = classes[i].grade;
+    });
+    allStudents = allStudents.concat(students);
+  }
+
+  if (allStudents.length === 0) return;
+
+  // Sort by grade then class
+  var gradeOrder = { '大班': 1, '中班': 2, '小班': 3 };
+  allStudents.sort(function(a, b) {
+    var ga = gradeOrder[a._grade] || 2;
+    var gb = gradeOrder[b._grade] || 2;
+    if (ga !== gb) return ga - gb;
+    if (a._className !== b._className) return a._className.localeCompare(b._className);
+    return a.name.localeCompare(b.name);
+  });
+
+  var container = document.getElementById('gen-student-chips');
+  if (!container) return;
+
+  var html = '';
+  var lastClass = '';
+  allStudents.forEach(function(s) {
+    var classLabel = s._className + '（' + (s._grade || '') + '）';
+    if (classLabel !== lastClass) {
+      html += '<div style="width:100%;font-size:11px;font-weight:600;color:var(--text-muted);margin-top:4px;">' + App.escapeHtml(classLabel) + '</div>';
+      lastClass = classLabel;
+    }
+    var info = s.name + '（' + s._grade + '，' + s._className + '）';
+    if (s.personality) info += '\n个性特点：' + s.personality;
+    if (s.habits) info += '\n行为习惯：' + s.habits;
+    if (s.notes) info += '\n备注：' + s.notes;
+    html += '<span class="chip" data-student-info="' + App.escapeHtml(info).replace(/"/g, '&quot;') + '" onclick="GenPage_toggleStudentChip(this,' + s.id + ')" style="cursor:pointer;user-select:none;">' + App.escapeHtml(s.name) + '</span>';
+  });
+
+  container.innerHTML = html;
 }
 
 (function initGeneratePlan() {
@@ -88,6 +203,12 @@ function SettingsPage_selectAge(el) {
     }
     document.getElementById('gen-context-hint').textContent = '本次生成将参考：资源库 ' + count + ' 篇 + 模板 ' + GeneratorWorkflow._sessionTemplates.length + ' 篇';
   });
+
+  // Show student selector for observation type
+  if (type === 'observation') {
+    document.getElementById('student-selector-section').style.display = 'block';
+    GenPage_loadStudentSelector();
+  }
 
   // Bind generate button
   document.getElementById('gen-btn').addEventListener('click', function() {
