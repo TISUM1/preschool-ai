@@ -17,8 +17,8 @@ var ApiClient = {
     // Already a full /chat/completions endpoint — use as-is
     if (url.endsWith('/chat/completions')) return url;
 
-    // URL already includes /v1 — just append chat/completions
-    if (url.indexOf('/v1') !== -1) return url + '/chat/completions';
+    // URL ends with a version path like /v1, /v2 — append chat/completions
+    if (/\/v\d+$/.test(url)) return url + '/chat/completions';
 
     // Bare domain or base path — assume OpenAI-compatible /v1/chat/completions
     return url + '/v1/chat/completions';
