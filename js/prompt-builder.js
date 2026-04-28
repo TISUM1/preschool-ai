@@ -149,8 +149,13 @@ var PromptBuilder = {
   /**
    * Build messages specifically for paper topic generation
    */
-  buildPaperTopicRequest: function(researchDirection) {
+  buildPaperTopicRequest: function(researchDirection, resourceContext) {
     var system = '你是一位幼儿教育研究方向的专家。请根据用户描述的研究方向，推荐5个适合发表在学前教育期刊上的论文选题。每个选题需要附上一句话的简要说明。选题要求：具有实践价值、一定的新颖性、适合幼儿园一线教师撰写。';
+
+    if (resourceContext) {
+      system += '\n\n--- 优秀论文范文参考（请参考其选题方向和标题风格）---\n' + resourceContext;
+    }
+
     var user = '研究方向：' + researchDirection + '\n请列出5个论文选题。';
     return [
       { role: 'system', content: system },

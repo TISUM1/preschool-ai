@@ -84,11 +84,23 @@ var ResourceLibrary = {
 
     var previews = summaries.map(function(s, idx) {
       var text = s.content || '';
-      // Strip HTML tags for plain text preview
       var plain = text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
       var preview = plain.substring(0, 200);
       if (plain.length > 200) preview += '...';
-      return (idx + 1) + '. 《' + s.fileName.replace(/\.(docx|pdf)$/i, '') + '》\n' + preview;
+
+      var entry = (idx + 1) + '. 《' + s.fileName.replace(/\.(docx|pdf)$/i, '') + '》\n' + preview;
+
+      // For papers, also include section/heading structure for outline reference
+      var sections = s.sections || [];
+      if (type === 'paper' && sections.length > 0) {
+        var headings = sections.filter(function(sec) { return sec.heading && sec.heading.trim(); })
+          .map(function(sec) { return (sec.heading || '').trim(); });
+        if (headings.length > 0) {
+          entry += '\n  [章节结构: ' + headings.join(' → ') + ']';
+        }
+      }
+
+      return entry;
     });
 
     var typeName = { plan: '教案', observation: '观察记录', paper: '论文' }[type] || '文档';
