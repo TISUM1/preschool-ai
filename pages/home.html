@@ -38,6 +38,17 @@
     </div>
   </div>
 
+  <div class="card home-action-card" style="background:linear-gradient(135deg,#E6FFFB,#B5F5EC);border-left:4px solid #13C2C2;" onclick="Router.navigate('generate-plan',{type:'story'})">
+    <div class="home-action-row">
+      <div class="home-action-icon">📖</div>
+      <div class="home-action-body">
+        <div class="home-action-title">课程故事</div>
+        <div class="home-action-desc">记录幼儿学习历程，白描行为细节，提炼课程价值与教师反思</div>
+      </div>
+      <div class="home-action-arrow">→</div>
+    </div>
+  </div>
+
   <div class="card home-action-card" style="background:linear-gradient(135deg,#FFF9F0,#FFE7BA);border-left:4px solid #FA8C16;" onclick="Router.navigate('generate-other')">
     <div class="home-action-row">
       <div class="home-action-icon">✨</div>
@@ -68,6 +79,10 @@
     <div style="flex:1;">
       <div style="font-size:26px;font-weight:700;color:#722ED1;" id="home-count-paper">0</div>
       <div style="font-size:11px;color:var(--text-muted);">📄 论文</div>
+    </div>
+    <div style="flex:1;">
+      <div style="font-size:26px;font-weight:700;color:#13C2C2;" id="home-count-story">0</div>
+      <div style="font-size:11px;color:var(--text-muted);">📖 课程故事</div>
     </div>
   </div>
   <div style="font-size:12px;color:var(--text-muted);text-align:center;margin-top:8px;" id="home-summary"></div>
@@ -111,14 +126,16 @@
     document.getElementById('home-count-plan').textContent = stats.plan || 0;
     document.getElementById('home-count-obs').textContent = stats.observation || 0;
     document.getElementById('home-count-paper').textContent = stats.paper || 0;
+    document.getElementById('home-count-story').textContent = stats.story || 0;
 
-    var total = (stats.plan||0) + (stats.observation||0) + (stats.paper||0);
+    var total = (stats.plan||0) + (stats.observation||0) + (stats.paper||0) + (stats.story||0);
     var summary = '';
     if (total > 0) {
       var parts = [];
       if (stats.plan > 0) parts.push(stats.plan + ' 篇优秀教案');
       if (stats.observation > 0) parts.push(stats.observation + ' 篇观察记录');
       if (stats.paper > 0) parts.push(stats.paper + ' 篇论文');
+      if (stats.story > 0) parts.push(stats.story + ' 篇课程故事');
       summary = '已积累 ' + parts.join(' · ') + ' — AI 生成质量持续提升中';
     } else {
       summary = '还没有资源，点击右上角「管理」去上传优秀范文';
@@ -134,9 +151,9 @@
       container.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text-muted);font-size:13px;">还没有文档，去首页开始创作吧</div>';
       return;
     }
-    var badgeMap = { plan: 'badge-plan', observation: 'badge-obs', paper: 'badge-paper', other: 'badge-other' };
-    var typeMap = { plan: '教案', observation: '观察记录', paper: '论文', other: '其他' };
-    var iconMap = { plan: '📝', observation: '👁️', paper: '📄', other: '✨' };
+    var badgeMap = { plan: 'badge-plan', observation: 'badge-obs', paper: 'badge-paper', story: 'badge-story', other: 'badge-other' };
+    var typeMap = { plan: '教案', observation: '观察记录', paper: '论文', story: '课程故事', other: '其他' };
+    var iconMap = { plan: '📝', observation: '👁️', paper: '📄', story: '📖', other: '✨' };
     var html = '';
     for (var i = 0; i < docs.length; i++) {
       var d = docs[i];
