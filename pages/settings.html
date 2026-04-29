@@ -14,14 +14,14 @@
   </div>
 
   <label class="label">API 地址</label>
-  <input class="input-box" id="set-api-url" placeholder="https://api.deepseek.com/v1" style="font-size:13px;margin-bottom:8px;" onchange="SettingsPage.onFieldChange()">
+  <input class="input-box" id="set-api-url" placeholder="https://api.deepseek.com" style="font-size:13px;margin-bottom:8px;" onchange="SettingsPage.onFieldChange()">
 
   <label class="label">API Key</label>
   <input class="input-box" id="set-api-key" type="password" placeholder="sk-..." style="font-size:13px;margin-bottom:8px;" onchange="SettingsPage.onFieldChange()">
 
   <label class="label">模型名称</label>
   <div style="display:flex;gap:8px;">
-    <input class="input-box" id="set-model" placeholder="deepseek-chat" style="font-size:13px;flex:1;" onchange="SettingsPage.onFieldChange()">
+    <input class="input-box" id="set-model" placeholder="" style="font-size:13px;flex:1;" onchange="SettingsPage.onFieldChange()">
     <button class="btn btn-outline btn-sm" onclick="SettingsPage.testConnection()">测试连接</button>
   </div>
 
@@ -101,7 +101,7 @@ var SettingsPage = {
     });
 
     var presets = {
-      deepseek: { url: 'https://api.deepseek.com/v1', model: 'deepseek-chat' },
+      deepseek: { url: 'https://api.deepseek.com', model: '' },
       qwen: { url: 'https://dashscope.aliyuncs.com/compatible-mode/v1', model: 'qwen-plus' },
       custom: { url: '', model: '' }
     };

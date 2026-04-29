@@ -24,17 +24,17 @@ var AppSettings = {
   getApiProvider: function() { return this.get('apiProvider', 'deepseek'); },
   getApiUrl: function() {
     var presets = {
-      deepseek: 'https://api.deepseek.com/v1',
+      deepseek: 'https://api.deepseek.com',
       qwen: 'https://dashscope.aliyuncs.com/compatible-mode/v1'
     };
     var provider = this.getApiProvider();
-    return this.get('apiUrl', presets[provider] || 'https://api.deepseek.com/v1');
+    return this.get('apiUrl', presets[provider] || 'https://api.deepseek.com');
   },
   getApiKey: function() { return this.get('apiKey', ''); },
   getModel: function() {
-    var presets = { deepseek: 'deepseek-chat', qwen: 'qwen-plus' };
+    var presets = { deepseek: '', qwen: '' };
     var provider = this.getApiProvider();
-    return this.get('model', presets[provider] || 'deepseek-chat');
+    return this.get('model', presets[provider] || '');
   },
   getTemperature: function() { return parseFloat(this.get('temperature', '0.7')); },
 

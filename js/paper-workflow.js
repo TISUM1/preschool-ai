@@ -241,6 +241,10 @@ var PaperWorkflow = {
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i].trim();
       if (!line) continue;
+      // Filter AI preamble/pleasantries
+      if (/^(好的|根据您的|以下是为|为您撰写|请查阅|综上所述|希望以上|研究员)/.test(line)) continue;
+      // Strip markdown bold markers
+      line = line.replace(/\*\*([^*]+)\*\*/g, '$1');
       var match = line.match(re);
       if (match || (items.length === 0 && line.length > 5)) {
         items.push(line.replace(re, '').trim());

@@ -316,7 +316,7 @@ body {
   display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px;
   background: var(--input-bg); border-radius: var(--radius-sm); margin: 4px 0;
 }
-.outline-item .outline-num { font-weight: 600; color: var(--primary-dark); flex-shrink: 0; }
+.outline-item .outline-num { font-weight: 600; color: var(--text-muted); flex-shrink: 0; }
 .outline-item input { flex: 1; border: none; background: transparent; font-size: 14px; font-family: inherit; color: var(--text); outline: none; }
 
 /* Responsive */
