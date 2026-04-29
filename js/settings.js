@@ -27,6 +27,11 @@ var AppSettings = {
   getModel: function() { return ''; },
   getTemperature: function() { return parseFloat(this.get('temperature', '0.7')); },
 
+  // --- Rewrite Model (for 降重) ---
+  getRewriteApiUrl: function() { return this.get('rewriteApiUrl', ''); },
+  getRewriteApiKey: function() { return this.get('rewriteApiKey', ''); },
+  getRewriteModel: function() { return this.get('rewriteModel', ''); },
+
   // --- Appearance ---
   getTheme: function() { return this.get('theme', 'pastel'); },
   getTeacherName: function() { return this.get('teacherName', '计老师'); },

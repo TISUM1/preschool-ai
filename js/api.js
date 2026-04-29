@@ -10,8 +10,8 @@ var ApiClient = {
    * Build the full chat completions URL from the configured API URL.
    * Handles common user input variations gracefully.
    */
-  _buildUrl: function() {
-    var url = (AppSettings.getApiUrl() || '').trim().replace(/\/+$/, '');
+  _buildUrl: function(overrideUrl) {
+    var url = (overrideUrl || AppSettings.getApiUrl() || '').trim().replace(/\/+$/, '');
     if (!url) throw new Error('请先在设置中配置 API 地址');
 
     // Already a full /chat/completions endpoint — use as-is
@@ -35,7 +35,9 @@ var ApiClient = {
       temperature: options.temperature || AppSettings.getTemperature(),
       top_p: options.top_p || 1.0,
       stream: options.stream !== false,
-      max_tokens: options.max_tokens || 4096
+      max_tokens: options.max_tokens || 4096,
+      frequency_penalty: options.frequency_penalty || 0,
+      presence_penalty: options.presence_penalty || 0
     };
   },
 
@@ -72,13 +74,14 @@ var ApiClient = {
    * Non-streaming chat completion
    */
   chat: async function(messages, options) {
-    var apiKey = AppSettings.getApiKey();
+    options = options || {};
+    var apiKey = options.apiKey || AppSettings.getApiKey();
     if (!apiKey) throw new Error('请先在设置中配置 API Key');
 
     var body = this.buildRequest(messages, options);
     body.stream = false;
 
-    var url = this._buildUrl();
+    var url = this._buildUrl(options.apiUrl);
     console.log('[ApiClient] POST', url);
 
     var resp;
@@ -109,13 +112,14 @@ var ApiClient = {
    * Returns full text when complete
    */
   chatStream: async function(messages, onChunk, options) {
-    var apiKey = AppSettings.getApiKey();
+    options = options || {};
+    var apiKey = options.apiKey || AppSettings.getApiKey();
     if (!apiKey) throw new Error('请先在设置中配置 API Key');
 
     var body = this.buildRequest(messages, options);
     body.stream = true;
 
-    var url = this._buildUrl();
+    var url = this._buildUrl(options.apiUrl);
     console.log('[ApiClient] POST (stream)', url);
 
     var resp;

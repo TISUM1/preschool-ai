@@ -78,6 +78,10 @@ var PaperWorkflow = {
     this._syncOutlineFromDom();
     this.state.outline = this._serializeOutline();
 
+    // Read personal material from textarea
+    var materialEl = document.getElementById('personal-material');
+    this.state.personalMaterial = materialEl ? materialEl.value.trim() : '';
+
     App.showLoading('正在填充论文内容...');
 
     try {
@@ -87,7 +91,8 @@ var PaperWorkflow = {
           stage: 'content',
           topic: this.state.topic,
           wordCount: this.state.wordCount,
-          outline: this.state.outline
+          outline: this.state.outline,
+          personalMaterial: this.state.personalMaterial
         }
       };
       var messages = await PromptBuilder.buildMessages('paper', context);
@@ -109,6 +114,9 @@ var PaperWorkflow = {
 
       this.state.content = fullText;
       this._showSaveActions();
+      // Show rewrite action buttons
+      var rewriteActions = document.getElementById('hs-rewrite-actions');
+      if (rewriteActions) rewriteActions.style.display = 'flex';
       App.hideLoading();
       Toast.show('论文初稿已生成');
     } catch(e) {
@@ -180,6 +188,108 @@ var PaperWorkflow = {
     if (regenBtn) regenBtn.style.display = 'none';
     if (fillBtn) fillBtn.style.display = 'block';
     if (step4) step4.style.display = 'block';
+  },
+
+  polishContent: async function() {
+    if (!this.state.content) {
+      Toast.show('请先生成论文内容', 'error');
+      return;
+    }
+
+    App.showLoading('正在降重润色...');
+
+    try {
+      var context = {
+        userInput: { topic: this.state.topic },
+        paperState: {
+          stage: 'polish',
+          topic: this.state.topic,
+          content: this.state.content
+        }
+      };
+      var messages = await PromptBuilder.buildMessages('paper', context);
+
+      var previewEl = document.getElementById('paper-preview');
+      var fullText = '';
+
+      if (previewEl) {
+        previewEl.style.display = 'block';
+        previewEl.innerHTML = '';
+      }
+
+      fullText = await ApiClient.chatStream(messages, function(delta, text) {
+        if (previewEl) {
+          previewEl.innerHTML = App.markdownToHtml(text);
+          previewEl.scrollTop = previewEl.scrollHeight;
+        }
+      }, { temperature: 0.8, max_tokens: 8192, frequency_penalty: 0.5, presence_penalty: 0.3 });
+
+      this.state.content = fullText;
+      App.hideLoading();
+      Toast.show('降重润色完成');
+    } catch(e) {
+      App.hideLoading();
+      Toast.show('润色失败: ' + e.message, 'error');
+    }
+  },
+
+  rewriteContent: async function() {
+    if (!this.state.content) {
+      Toast.show('请先生成论文内容', 'error');
+      return;
+    }
+
+    // Check if a second model is configured
+    var rewriteApiUrl = AppSettings.getRewriteApiUrl ? AppSettings.getRewriteApiUrl() : '';
+    var rewriteApiKey = AppSettings.getRewriteApiKey ? AppSettings.getRewriteApiKey() : '';
+    if (!rewriteApiKey) {
+      var proceed = confirm('建议在设置中配置第二个AI模型用于降重改写，效果更佳。\n\n是否使用当前模型继续？');
+      if (!proceed) return;
+    }
+
+    App.showLoading('正在多模型改写...');
+
+    try {
+      var context = {
+        userInput: { topic: this.state.topic },
+        paperState: {
+          stage: 'rewrite',
+          topic: this.state.topic,
+          content: this.state.content
+        }
+      };
+      var messages = await PromptBuilder.buildMessages('paper', context);
+
+      var previewEl = document.getElementById('paper-preview');
+      var fullText = '';
+
+      if (previewEl) {
+        previewEl.style.display = 'block';
+        previewEl.innerHTML = '';
+      }
+
+      // Use rewrite API if configured, otherwise use current API
+      var options = { temperature: 0.9, max_tokens: 8192, frequency_penalty: 0.8, presence_penalty: 0.5 };
+      if (rewriteApiUrl && rewriteApiKey) {
+        options.apiUrl = rewriteApiUrl;
+        options.apiKey = rewriteApiKey;
+        options.model = AppSettings.getRewriteModel ? AppSettings.getRewriteModel() : '';
+      }
+
+      fullText = await ApiClient.chatStream(messages, function(delta, text) {
+        if (previewEl) {
+          previewEl.innerHTML = App.markdownToHtml(text);
+          previewEl.scrollTop = previewEl.scrollHeight;
+        }
+      }, options);
+
+      this.state.content = fullText;
+      App.hideLoading();
+      Toast.show('多模型改写完成');
+    } catch(e) {
+      App.hideLoading();
+      Toast.show('改写失败: ' + e.message, 'error');
+    }
   },
 
   // --- Common ---

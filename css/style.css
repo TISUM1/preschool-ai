@@ -326,6 +326,10 @@ body {
 .outline-conclusion { /* inherits outline-h1 styles */ }
 .outline-references { padding: 8px 12px; font-size: 14px; color: var(--text-muted); font-weight: 500; border-left: 3px solid var(--border); background: #FAFAFA; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin-top: 8px; }
 
+/* Rewrite Actions */
+.btn-accent { background: linear-gradient(135deg, #722ED1, #9254DE); color: #fff; border: none; }
+.btn-accent:active { opacity: 0.85; transform: scale(0.98); }
+
 /* Responsive */
 @media (min-width: 480px) {
   #app { border-left: 1px solid var(--border); border-right: 1px solid var(--border); }

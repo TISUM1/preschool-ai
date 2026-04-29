@@ -30,6 +30,20 @@
   </div>
 </div>
 
+<!-- Rewrite Model -->
+<div class="card">
+  <div class="card-title">✨ 降重专用模型 <span style="font-weight:400;font-size:12px;color:var(--text-muted)">（可选）</span></div>
+  <label class="label">API 地址</label>
+  <input class="input-box" id="set-rewrite-url" placeholder="如 https://dashscope.aliyuncs.com/compatible-mode/v1" style="font-size:13px;margin-bottom:8px;" onchange="SettingsPage.saveRewriteSettings()">
+  <label class="label">API Key</label>
+  <input class="input-box" id="set-rewrite-key" type="password" placeholder="降重专用 API Key" style="font-size:13px;margin-bottom:8px;" onchange="SettingsPage.saveRewriteSettings()">
+  <label class="label">模型名称</label>
+  <input class="input-box" id="set-rewrite-model" placeholder="如 qwen-plus" style="font-size:13px;margin-bottom:8px;" onchange="SettingsPage.saveRewriteSettings()">
+  <div style="font-size:11px;color:var(--text-muted);background:#F5F0FF;padding:8px;border-radius:8px;">
+    配置第二个AI模型用于"多模型改写"降重，不同模型生成分布差异可显著降低AIGC检测率。不配置则使用当前模型。
+  </div>
+</div>
+
 <!-- Theme -->
 <div class="card">
   <div class="card-title">🎨 外观主题</div>
@@ -92,6 +106,11 @@ var SettingsPage = {
 
     this.selectPreset(this._preset);
     this._highlightTheme(theme);
+
+    // Load rewrite model settings
+    document.getElementById('set-rewrite-url').value = AppSettings.getRewriteApiUrl() || '';
+    document.getElementById('set-rewrite-key').value = AppSettings.getRewriteApiKey() || '';
+    document.getElementById('set-rewrite-model').value = AppSettings.getRewriteModel() || '';
   },
 
   selectPreset: function(preset) {
@@ -129,6 +148,12 @@ var SettingsPage = {
     await AppSettings.set('model', document.getElementById('set-model').value.trim());
     var nameVal = document.getElementById('set-name').value.trim();
     if (nameVal) await AppSettings.set('teacherName', nameVal);
+  },
+
+  saveRewriteSettings: async function() {
+    await AppSettings.set('rewriteApiUrl', document.getElementById('set-rewrite-url').value.trim());
+    await AppSettings.set('rewriteApiKey', document.getElementById('set-rewrite-key').value.trim());
+    await AppSettings.set('rewriteModel', document.getElementById('set-rewrite-model').value.trim());
   },
 
   setTheme: async function(theme) {
