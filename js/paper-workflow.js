@@ -57,7 +57,7 @@ var PaperWorkflow = {
       };
       var messages = await PromptBuilder.buildMessages('paper', context);
 
-      var outlineText = await ApiClient.chat(messages, { stream: false });
+      var outlineText = await ApiClient.chat(messages, { stream: false, max_tokens: 8192 });
       this.state.outline = outlineText;
 
       // Parse outline into items for editing
