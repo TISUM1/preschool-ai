@@ -172,16 +172,6 @@ body {
 .entry-btn .entry-title { font-size: 18px; font-weight: 600; color: var(--text); }
 .entry-btn .entry-desc { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
 
-/* Section Card (for outline items) */
-.section-card {
-  border-left: 3px solid var(--primary); padding: 10px 14px;
-  background: #FAFAFA; border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  margin: 6px 0; font-size: 13px; cursor: pointer; transition: background 0.15s;
-}
-.section-card:active { background: var(--primary-light); }
-.section-card .section-heading { font-weight: 600; color: var(--text); }
-.section-card .section-preview { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-
 /* Content Editor */
 .content-editor {
   min-height: 200px; padding: 14px; border: 1.5px solid var(--border);
@@ -311,13 +301,30 @@ body {
 .topic-num { width: 24px; height: 24px; border-radius: 12px; background: var(--primary);
   color: #fff; text-align: center; line-height: 24px; font-size: 12px; font-weight: 600; flex-shrink: 0; }
 
-/* Outline Editor */
-.outline-item {
-  display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px;
-  background: var(--input-bg); border-radius: var(--radius-sm); margin: 4px 0;
+/* Outline Editor — Hierarchical */
+.outline-section { margin: 4px 0; }
+
+.outline-title input {
+  width: 100%; padding: 12px 14px; border: none; background: transparent;
+  font-size: 18px; font-weight: 700; font-family: inherit; color: var(--text);
+  outline: none; text-align: center; border-bottom: 2px solid var(--primary);
 }
-.outline-item .outline-num { font-weight: 600; color: var(--text-muted); flex-shrink: 0; }
-.outline-item input { flex: 1; border: none; background: transparent; font-size: 14px; font-family: inherit; color: var(--text); outline: none; }
+
+.outline-meta { display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px; background: var(--input-bg); border-radius: var(--radius-sm); }
+.outline-label { font-size: 13px; font-weight: 600; color: var(--primary); flex-shrink: 0; white-space: nowrap; line-height: 2; }
+.outline-input-abstract { flex: 1; border: none; background: transparent; font-size: 14px; font-family: inherit; color: var(--text); outline: none; resize: none; min-height: 60px; line-height: 1.6; }
+.outline-input-keywords { flex: 1; border: none; background: transparent; font-size: 14px; font-family: inherit; color: var(--text); outline: none; }
+
+.outline-h1 { display: flex; align-items: center; gap: 8px; padding: 10px 12px; margin-top: 8px; border-left: 3px solid var(--primary); background: #FAFAFA; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+.outline-h1-num { font-size: 15px; font-weight: 700; color: var(--text); flex-shrink: 0; }
+.outline-input-h1 { flex: 1; border: none; background: transparent; font-size: 15px; font-weight: 600; font-family: inherit; color: var(--text); outline: none; }
+
+.outline-h2 { display: flex; align-items: center; gap: 6px; padding: 6px 12px 6px 30px; background: var(--input-bg); border-radius: var(--radius-sm); margin: 2px 0; }
+.outline-h2-num { font-size: 13px; font-weight: 600; color: var(--text-secondary); flex-shrink: 0; }
+.outline-input-h2 { flex: 1; border: none; background: transparent; font-size: 14px; font-family: inherit; color: var(--text-secondary); outline: none; }
+
+.outline-conclusion { /* inherits outline-h1 styles */ }
+.outline-references { padding: 8px 12px; font-size: 14px; color: var(--text-muted); font-weight: 500; border-left: 3px solid var(--border); background: #FAFAFA; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin-top: 8px; }
 
 /* Responsive */
 @media (min-width: 480px) {

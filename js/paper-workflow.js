@@ -74,13 +74,9 @@ var PaperWorkflow = {
   },
 
   fillContent: async function() {
-    // Collect current outline from editor
-    var outlineItems = document.querySelectorAll('.outline-item input');
-    var updatedOutline = '';
-    for (var i = 0; i < outlineItems.length; i++) {
-      updatedOutline += (i + 1) + '. ' + outlineItems[i].value + '\n';
-    }
-    this.state.outline = updatedOutline;
+    // Sync DOM edits back to outlineItems and serialize
+    this._syncOutlineFromDom();
+    this.state.outline = this._serializeOutline();
 
     App.showLoading('正在填充论文内容...');
 
@@ -168,15 +164,10 @@ var PaperWorkflow = {
   },
 
   confirmOutline: function() {
-    // Save current outline state from editor
-    var outlineItems = document.querySelectorAll('.outline-item input');
-    if (outlineItems.length > 0) {
-      var updatedOutline = '';
-      for (var i = 0; i < outlineItems.length; i++) {
-        updatedOutline += (i + 1) + '. ' + outlineItems[i].value + '\n';
-      }
-      this.state.outline = updatedOutline;
-    }
+    // Sync DOM edits back to outlineItems
+    this._syncOutlineFromDom();
+    // Serialize with proper Chinese numbering
+    this.state.outline = this._serializeOutline();
 
     Toast.show('大纲已确认，请生成论文内容');
 
@@ -233,10 +224,18 @@ var PaperWorkflow = {
 
   // --- Helpers ---
 
+  /** Convert 0-based index to Chinese number: 0→一, 1→二, …, 9→十 */
+  _cnNum: function(index) {
+    var chars = '一二三四五六七八九十';
+    return index < chars.length ? chars[index] : String(index + 1);
+  },
+
   _parseOutline: function(text) {
     var items = [];
     var lines = text.split('\n');
-    var re = /^[\d一二三四五六七八九十]+[\.、．)]\s*/;
+    var h1Re = /^[一二三四五六七八九十]+[、\.．]\s*/;
+    var h2Re = /^[（(][一二三四五六七八九十]+[）)]\s*/;
+    var currentH1 = null;
 
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i].trim();
@@ -245,17 +244,73 @@ var PaperWorkflow = {
       if (/^(好的|根据您的|以下是为|为您撰写|请查阅|综上所述|希望以上|研究员)/.test(line)) continue;
       // Strip markdown bold markers
       line = line.replace(/\*\*([^*]+)\*\*/g, '$1');
-      var match = line.match(re);
-      if (match || (items.length === 0 && line.length > 5)) {
-        items.push(line.replace(re, '').trim());
+
+      // Keywords
+      if (/^关键词[：:]/.test(line)) {
+        items.push({ type: 'keywords', text: line.replace(/^关键词[：:]\s*/, ''), number: '', children: [] });
+        continue;
+      }
+      // Abstract
+      if (/^摘要[：:]/.test(line)) {
+        items.push({ type: 'abstract', text: line.replace(/^摘要[：:]\s*/, ''), number: '', children: [] });
+        continue;
+      }
+      // References
+      if (/^参考文献/.test(line)) {
+        items.push({ type: 'references', text: '参考文献', number: '', children: [] });
+        continue;
+      }
+      // Level-2 heading: （一）or (一)
+      var h2Match = line.match(h2Re);
+      if (h2Match) {
+        var h2Item = { type: 'h2', text: line.replace(h2Re, '').trim(), number: h2Match[0].replace(/\s*$/, ''), children: [] };
+        if (currentH1) {
+          currentH1.children.push(h2Item);
+        } else {
+          items.push(h2Item);
+        }
+        continue;
+      }
+      // Level-1 heading: 一、 二、 etc.
+      var h1Match = line.match(h1Re);
+      if (h1Match) {
+        var h1Text = line.replace(h1Re, '').trim();
+        var isConclusion = /结语|结论/.test(h1Text);
+        var h1Item = {
+          type: isConclusion ? 'conclusion' : 'h1',
+          text: h1Text,
+          number: h1Match[0].replace(/\s*$/, ''),
+          children: []
+        };
+        items.push(h1Item);
+        currentH1 = h1Item;
+        continue;
+      }
+      // Title: first non-structured line before any heading
+      if (items.length === 0 || (items.length === 1 && items[0].type === 'title')) {
+        // Check if we already have a title
+        var hasTitle = items.some(function(it) { return it.type === 'title'; });
+        if (!hasTitle && line.length > 2 && !/^摘要|^关键词|^参考文献/.test(line)) {
+          items.unshift({ type: 'title', text: line, number: '', children: [] });
+          continue;
+        }
       }
     }
 
-    // If no structured outline found, split by double newlines
-    if (items.length <= 1) {
+    // Fallback: if no title found, use state.topic
+    var hasTitleItem = items.some(function(it) { return it.type === 'title'; });
+    if (!hasTitleItem && this.state.topic) {
+      items.unshift({ type: 'title', text: this.state.topic, number: '', children: [] });
+    }
+
+    // Fallback: if no structured items found at all, split by double newlines
+    var structuredCount = items.filter(function(it) { return it.type === 'h1' || it.type === 'h2' || it.type === 'conclusion'; }).length;
+    if (structuredCount === 0) {
       var parts = text.split(/\n\n+/).filter(function(p) { return p.trim(); });
       if (parts.length > 1) {
-        items = parts.map(function(p) { return p.trim().split('\n')[0]; });
+        items = parts.map(function(p) {
+          return { type: 'h1', text: p.trim().split('\n')[0], number: '', children: [] };
+        });
       }
     }
 
@@ -272,16 +327,52 @@ var PaperWorkflow = {
     var items = this.state.outlineItems;
     if (items.length === 0) {
       // Fallback: use raw outline text
-      items = this.state.outline.split('\n').filter(function(l) { return l.trim(); });
+      var rawItems = this.state.outline.split('\n').filter(function(l) { return l.trim(); });
+      items = rawItems.map(function(l) { return { type: 'h1', text: l, number: '', children: [] }; });
       this.state.outlineItems = items;
     }
 
     var html = '';
     for (var i = 0; i < items.length; i++) {
-      html += '<div class="outline-item">'
-        + '<span class="outline-num">' + (i + 1) + '.</span>'
-        + '<input type="text" value="' + App.escapeHtml(items[i]) + '" onchange="PaperWorkflow._updateOutlineItem(' + i + ', this.value)">'
-        + '</div>';
+      var item = items[i];
+
+      if (item.type === 'title') {
+        html += '<div class="outline-section outline-title">'
+          + '<input type="text" class="outline-input-title" data-path="' + i + '" value="' + App.escapeHtml(item.text) + '" onchange="PaperWorkflow._updateItem(this.dataset.path, this.value)">'
+          + '</div>';
+      } else if (item.type === 'abstract') {
+        html += '<div class="outline-section outline-meta">'
+          + '<span class="outline-label">摘要</span>'
+          + '<textarea class="outline-input-abstract" data-path="' + i + '" onchange="PaperWorkflow._updateItem(this.dataset.path, this.value)" rows="3">' + App.escapeHtml(item.text) + '</textarea>'
+          + '</div>';
+      } else if (item.type === 'keywords') {
+        html += '<div class="outline-section outline-meta">'
+          + '<span class="outline-label">关键词</span>'
+          + '<input type="text" class="outline-input-keywords" data-path="' + i + '" value="' + App.escapeHtml(item.text) + '" onchange="PaperWorkflow._updateItem(this.dataset.path, this.value)">'
+          + '</div>';
+      } else if (item.type === 'h1' || item.type === 'conclusion') {
+        var cls = item.type === 'conclusion' ? 'outline-section outline-h1 outline-conclusion' : 'outline-section outline-h1';
+        var num = item.number || (this._cnNum(i) + '、');
+        html += '<div class="' + cls + '">'
+          + '<span class="outline-h1-num">' + App.escapeHtml(num) + '</span>'
+          + '<input type="text" class="outline-input-h1" data-path="' + i + '" value="' + App.escapeHtml(item.text) + '" onchange="PaperWorkflow._updateItem(this.dataset.path, this.value)">'
+          + '</div>';
+        // Render h2 children
+        if (item.children) {
+          for (var j = 0; j < item.children.length; j++) {
+            var child = item.children[j];
+            var childNum = child.number || ('（' + this._cnNum(j) + '）');
+            html += '<div class="outline-section outline-h2">'
+              + '<span class="outline-h2-num">' + App.escapeHtml(childNum) + '</span>'
+              + '<input type="text" class="outline-input-h2" data-path="' + i + '.' + j + '" value="' + App.escapeHtml(child.text) + '" onchange="PaperWorkflow._updateItem(this.dataset.path, this.value)">'
+              + '</div>';
+          }
+        }
+      } else if (item.type === 'references') {
+        html += '<div class="outline-section outline-references">'
+          + '<span>参考文献</span>'
+          + '</div>';
+      }
     }
 
     container.innerHTML = html;
@@ -292,8 +383,53 @@ var PaperWorkflow = {
     if (actions) actions.style.display = 'block';
   },
 
-  _updateOutlineItem: function(index, value) {
-    this.state.outlineItems[index] = value;
+  _updateItem: function(path, value) {
+    var parts = String(path).split('.');
+    var item = this.state.outlineItems[parseInt(parts[0])];
+    if (parts.length === 1) {
+      item.text = value;
+    } else if (parts.length === 2 && item.children) {
+      var child = item.children[parseInt(parts[1])];
+      if (child) child.text = value;
+    }
+  },
+
+  /** Read all data-path inputs from DOM and sync back to outlineItems */
+  _syncOutlineFromDom: function() {
+    var self = this;
+    var inputs = document.querySelectorAll('#outline-editor [data-path]');
+    for (var k = 0; k < inputs.length; k++) {
+      var path = inputs[k].getAttribute('data-path');
+      self._updateItem(path, inputs[k].value);
+    }
+  },
+
+  /** Serialize structured outlineItems to text with Chinese numbering */
+  _serializeOutline: function() {
+    var lines = [];
+    var h1Count = 0;
+    var items = this.state.outlineItems;
+    for (var i = 0; i < items.length; i++) {
+      var item = items[i];
+      if (item.type === 'title') {
+        lines.push(item.text);
+      } else if (item.type === 'abstract') {
+        lines.push('摘要：' + item.text);
+      } else if (item.type === 'keywords') {
+        lines.push('关键词：' + item.text);
+      } else if (item.type === 'h1' || item.type === 'conclusion') {
+        h1Count++;
+        lines.push(this._cnNum(h1Count - 1) + '、' + item.text);
+        if (item.children) {
+          for (var j = 0; j < item.children.length; j++) {
+            lines.push('（' + this._cnNum(j) + '）' + item.children[j].text);
+          }
+        }
+      } else if (item.type === 'references') {
+        lines.push('参考文献');
+      }
+    }
+    return lines.join('\n');
   },
 
   _parseTopics: function(text) {
