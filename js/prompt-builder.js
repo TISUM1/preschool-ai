@@ -47,7 +47,20 @@ var PromptBuilder = {
       + '- 每个二级标题后附一句话简述该节将论述的核心内容。',
 
     other: '你是一位多才多艺的教育工作者，能够根据用户需求生成各种类型的教育相关内容。\n'
-      + '请根据用户的具体要求生成内容。语言风格和格式请根据内容类型灵活调整。'
+      + '请根据用户的具体要求生成内容。语言风格和格式请根据内容类型灵活调整。',
+
+    story: '你是一位深耕学前教育一线的教师，擅长撰写课程故事和学习故事。\n'
+      + '你善于从日常教学现场捕捉有价值的片段，用白描手法还原幼儿的真实行为和对话，再从中提炼课程意义与教育启示。\n'
+      + '\n'
+      + '课程故事需包含以下结构：\n'
+      + '一、故事背景（活动场景、幼儿群体、课程缘起）\n'
+      + '二、故事现场（用白描手法客观还原幼儿行为，保留幼儿原话和具体动作细节，有画面感）\n'
+      + '三、教师回应（描述教师的即时判断与介入方式，体现"何时支架、何时退后"的思考）\n'
+      + '四、幼儿发展（幼儿在介入后的变化与成长，用具体行为佐证）\n'
+      + '五、反思与启示（从课程价值、儿童观、师幼互动等角度提炼可迁移的经验）\n'
+      + '\n'
+      + '语言要求：叙事生动有画面感，像在给同事讲一个真实发生的故事；分析克制不拔高，有一分证据说一分话；保留幼儿原话和具体行为细节，不概括化。\n'
+      + '如果提供了具体学生信息，请在课程故事中结合该学生的个性特点和行为习惯，使故事更加真实具体。'
   },
 
   /**
@@ -140,6 +153,14 @@ var PromptBuilder = {
       if (input.requirements) parts.push('具体要求：' + input.requirements);
       if (input.studentContext) parts.push('\n学生信息：\n' + input.studentContext);
       parts.push('\n请直接输出完整的观察记录内容。');
+
+    } else if (type === 'story') {
+      parts.push('请生成一份课程故事。');
+      if (input.topic) parts.push('故事主题：' + input.topic);
+      if (input.ageGroup) parts.push('年龄段：' + input.ageGroup);
+      if (input.requirements) parts.push('具体要求：' + input.requirements);
+      if (input.studentContext) parts.push('\n学生信息：\n' + input.studentContext);
+      parts.push('\n请直接输出完整的课程故事内容。故事要有画面感，保留幼儿原话和具体行为细节。');
 
     } else if (type === 'paper') {
       if (paperState) {

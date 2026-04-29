@@ -121,6 +121,7 @@ body {
 .badge-obs { background: #BAE7FF; color: #096DD9; }
 .badge-paper { background: #EFDBFF; color: #722ED1; }
 .badge-other { background: #D9F7BE; color: #389E0D; }
+.badge-story { background: #E6FFFB; color: #08979C; }
 
 /* Toggle Switch */
 .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; }

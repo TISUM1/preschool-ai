@@ -8,6 +8,7 @@
   <span class="tag" data-filter="plan" onclick="DocsPage.filter('plan')">📝 教案</span>
   <span class="tag" data-filter="observation" onclick="DocsPage.filter('observation')">👁️ 观察记录</span>
   <span class="tag" data-filter="paper" onclick="DocsPage.filter('paper')">📄 论文</span>
+  <span class="tag" data-filter="story" onclick="DocsPage.filter('story')">📖 课程故事</span>
   <span class="tag" data-filter="other" onclick="DocsPage.filter('other')">✨ 其他</span>
 </div>
 
@@ -41,8 +42,8 @@ var DocsPage = {
       return;
     }
 
-    var badgeMap = { plan: 'badge-plan', observation: 'badge-obs', paper: 'badge-paper', other: 'badge-other' };
-    var typeMap = { plan: '教案', observation: '观察记录', paper: '论文', other: '其他' };
+    var badgeMap = { plan: 'badge-plan', observation: 'badge-obs', paper: 'badge-paper', story: 'badge-story', other: 'badge-other' };
+    var typeMap = { plan: '教案', observation: '观察记录', paper: '论文', story: '课程故事', other: '其他' };
 
     var html = '';
     for (var i = 0; i < docs.length; i++) {

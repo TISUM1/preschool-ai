@@ -111,7 +111,7 @@ var GeneratorWorkflow = {
     // Collect student selection for observation type
     var studentContext = '';
     var studentSelector = document.getElementById('student-selector-section');
-    if (studentSelector && type === 'observation') {
+    if (studentSelector && (type === 'observation' || type === 'story')) {
       studentContext = studentSelector.getAttribute('data-selected-students') || '';
     }
 
@@ -179,11 +179,11 @@ var GeneratorWorkflow = {
 
     var content = actionsEl.getAttribute('data-content') || '';
     var topic = actionsEl.getAttribute('data-topic') || '';
-    var title = topic || ('未命名' + { plan: '教案', observation: '观察记录', other: '内容' }[type] || '文档');
+    var title = topic || ('未命名' + { plan: '教案', observation: '观察记录', story: '课程故事', other: '内容' }[type] || '文档');
 
     var ageGroup = document.getElementById('gen-agegroup') ? document.getElementById('gen-agegroup').value : '';
     var studentSelector = document.getElementById('student-selector-section');
-    var studentContext = (studentSelector && type === 'observation') ? (studentSelector.getAttribute('data-selected-students') || '') : '';
+    var studentContext = (studentSelector && (type === 'observation' || type === 'story')) ? (studentSelector.getAttribute('data-selected-students') || '') : '';
 
     var doc = {
       title: title,

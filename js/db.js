@@ -41,7 +41,8 @@ var ResourceDB = {
     return {
       plan: all.filter(function(r) { return r.type === 'plan'; }).length,
       observation: all.filter(function(r) { return r.type === 'observation'; }).length,
-      paper: all.filter(function(r) { return r.type === 'paper'; }).length
+      paper: all.filter(function(r) { return r.type === 'paper'; }).length,
+      story: all.filter(function(r) { return r.type === 'story'; }).length
     };
   },
   remove: function(id) {

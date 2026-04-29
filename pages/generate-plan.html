@@ -188,10 +188,10 @@ async function GenPage_loadStudentSelector() {
   var type = params.type || 'plan';
   GeneratorWorkflow._currentType = type;
 
-  var typeNames = { plan: '教案', observation: '观察记录', paper: '论文', other: '内容' };
+  var typeNames = { plan: '教案', observation: '观察记录', story: '课程故事', paper: '论文', other: '内容' };
   var typeName = typeNames[type] || '教案';
 
-  var typeIcons = { plan: '📝', observation: '👁️', paper: '📄', other: '✨' };
+  var typeIcons = { plan: '📝', observation: '👁️', story: '📖', paper: '📄', other: '✨' };
   var typeIcon = typeIcons[type] || '📝';
 
   document.getElementById('gen-type-title').textContent = typeIcon + ' 生成' + typeName;
@@ -204,8 +204,8 @@ async function GenPage_loadStudentSelector() {
     document.getElementById('gen-context-hint').textContent = '本次生成将参考：资源库 ' + count + ' 篇 + 模板 ' + GeneratorWorkflow._sessionTemplates.length + ' 篇';
   });
 
-  // Show student selector for observation type
-  if (type === 'observation') {
+  // Show student selector for observation and story types
+  if (type === 'observation' || type === 'story') {
     document.getElementById('student-selector-section').style.display = 'block';
     GenPage_loadStudentSelector();
   }

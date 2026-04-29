@@ -20,6 +20,10 @@
     <div class="stat-num" style="color:#722ED1;">📄</div>
     <div class="stat-label">论文</div>
   </div>
+  <div class="stat-card" onclick="LibraryPage.filterType('story')">
+    <div class="stat-num" style="color:#13C2C2;">📖</div>
+    <div class="stat-label">课程故事</div>
+  </div>
 </div>
 
 <div class="filter-row">
@@ -68,9 +72,9 @@ var LibraryPage = {
     var html = '';
     for (var i = 0; i < items.length; i++) {
       var r = items[i];
-      var icon = r.type === 'plan' ? '📝' : (r.type === 'observation' ? '👁️' : '📄');
-      var badgeCls = r.type === 'plan' ? 'badge-plan' : (r.type === 'observation' ? 'badge-obs' : 'badge-paper');
-      var typeName = { plan: '教案', observation: '观察记录', paper: '论文' }[r.type] || '';
+      var icon = { plan: '📝', observation: '👁️', paper: '📄', story: '📖' }[r.type] || '📄';
+      var badgeCls = { plan: 'badge-plan', observation: 'badge-obs', paper: 'badge-paper', story: 'badge-story' }[r.type] || '';
+      var typeName = { plan: '教案', observation: '观察记录', paper: '论文', story: '课程故事' }[r.type] || '';
       var dateStr = r.uploadedAt ? new Date(r.uploadedAt).toLocaleDateString('zh-CN') : '';
       html += '<div class="file-row"><span class="file-icon">' + icon + '</span>'
         + '<div class="file-info"><div class="file-name">' + App.escapeHtml(r.fileName) + '</div>'
@@ -128,9 +132,9 @@ var LibraryPage = {
 
   _promptType: function() {
     return new Promise(function(resolve) {
-      var type = prompt('请选择资源类型：\n1 - 教案\n2 - 观察记录\n3 - 论文', '1');
+      var type = prompt('请选择资源类型：\n1 - 教案\n2 - 观察记录\n3 - 论文\n4 - 课程故事', '1');
       if (type === null) { resolve(null); return; }
-      var map = { '1': 'plan', '2': 'observation', '3': 'paper' };
+      var map = { '1': 'plan', '2': 'observation', '3': 'paper', '4': 'story' };
       resolve(map[type] || 'plan');
     });
   }
