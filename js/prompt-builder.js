@@ -67,13 +67,30 @@ var PromptBuilder = {
     // 1. System prompt (role + resource context + template context + format instruction)
     var system = this.systemPrompts[type] || this.systemPrompts.other;
 
+    // 1b. Inject teacher identity for paper type
+    if (type === 'paper') {
+      var teacherName = AppSettings.getTeacherName();
+      if (teacherName && teacherName !== '计老师') {
+        system = system.replace('你是一线幼儿园教师', '你是' + teacherName + '，一位一线幼儿园教师');
+      }
+    }
+
     // 2. Resource library context (auto-injected)
+    // For paper type, use fuller context (2000 chars) for stronger style signal
     var resourceContext = context.resourceContext;
     if (!resourceContext) {
-      resourceContext = await ResourceLibrary.getContextForType(type);
+      if (type === 'paper') {
+        resourceContext = await ResourceLibrary.getFullContextForType(type, 2000);
+      } else {
+        resourceContext = await ResourceLibrary.getContextForType(type);
+      }
     }
     if (resourceContext) {
-      system += '\n\n--- 优秀论文范文（请仔细学习以下范文的题目命名、章节结构和论证逻辑，务必参考其框架）---\n' + resourceContext;
+      if (type === 'paper') {
+        system += '\n\n--- 个人写作样本（请模仿其用词习惯、句式节奏和论证方式）---\n' + resourceContext;
+      } else {
+        system += '\n\n--- 优秀论文范文（请仔细学习以下范文的题目命名、章节结构和论证逻辑，务必参考其框架）---\n' + resourceContext;
+      }
     }
 
     // 3. Template content (current session reference)

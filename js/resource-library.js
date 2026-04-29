@@ -108,5 +108,42 @@ var ResourceLibrary = {
     return '用户已上传 ' + summaries.length + ' 篇优秀' + typeName + '供参考学习。\n'
       + '以下是这些文档的内容摘要，请在生成时参考其风格和质量标准：\n\n'
       + previews.join('\n\n');
+  },
+
+  /**
+   * Get fuller resource context for style/personalization injection (降重)
+   * Returns more text per resource (default 2000 chars) for stronger style signal
+   */
+  getFullContextForType: async function(type, maxChars) {
+    maxChars = maxChars || 2000;
+    var summaries = await ResourceDB.getSummaries(type);
+
+    if (summaries.length === 0) return '';
+
+    var previews = summaries.map(function(s, idx) {
+      var text = s.content || '';
+      var plain = text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+      var preview = plain.substring(0, maxChars);
+      if (plain.length > maxChars) preview += '...';
+
+      var entry = (idx + 1) + '. 《' + s.fileName.replace(/\.(docx|pdf)$/i, '') + '》\n' + preview;
+
+      // For papers, also include section/heading structure
+      var sections = s.sections || [];
+      if (type === 'paper' && sections.length > 0) {
+        var headings = sections.filter(function(sec) { return sec.heading && sec.heading.trim(); })
+          .map(function(sec) { return (sec.heading || '').trim(); });
+        if (headings.length > 0) {
+          entry += '\n  [章节结构: ' + headings.join(' → ') + ']';
+        }
+      }
+
+      return entry;
+    });
+
+    var typeName = { plan: '教案', observation: '观察记录', paper: '论文' }[type] || '文档';
+
+    return '以下是你的个人写作样本（你之前撰写或上传的' + typeName + '片段），请模仿其用词习惯、句式节奏和论证方式来撰写新论文。\n\n'
+      + previews.join('\n\n');
   }
 };

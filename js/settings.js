@@ -22,20 +22,9 @@ var AppSettings = {
 
   // --- API Provider ---
   getApiProvider: function() { return this.get('apiProvider', 'deepseek'); },
-  getApiUrl: function() {
-    var presets = {
-      deepseek: 'https://api.deepseek.com',
-      qwen: 'https://dashscope.aliyuncs.com/compatible-mode/v1'
-    };
-    var provider = this.getApiProvider();
-    return this.get('apiUrl', presets[provider] || 'https://api.deepseek.com');
-  },
-  getApiKey: function() { return this.get('apiKey', ''); },
-  getModel: function() {
-    var presets = { deepseek: '', qwen: '' };
-    var provider = this.getApiProvider();
-    return this.get('model', presets[provider] || '');
-  },
+  getApiUrl: function() { return ''; },
+  getApiKey: function() { return ''; },
+  getModel: function() { return ''; },
   getTemperature: function() { return parseFloat(this.get('temperature', '0.7')); },
 
   // --- Appearance ---
