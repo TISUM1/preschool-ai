@@ -46,13 +46,14 @@
 
   <label class="label">姓名</label>
   <input class="input-box" id="set-teacher-name" placeholder="张老师">
-
-  <label class="label" style="margin-top:10px;">幼儿园名称</label>
-  <input class="input-box" id="set-school-name" placeholder="XX幼儿园">
 </div>
 
 <!-- Save Button -->
 <button class="btn btn-primary btn-block" onclick="SettingsPage.save()">💾 保存设置</button>
+
+<div style="text-align:center;margin-top:16px;font-size:11px;color:var(--text-muted);">
+  Alice 专属 · v5.20
+</div>
 
 <script>
 var SettingsPage = {
@@ -67,7 +68,6 @@ var SettingsPage = {
     document.getElementById('set-rewrite-key').value = settings.rewriteApiKey || '';
     document.getElementById('set-rewrite-model').value = settings.rewriteModel || '';
     document.getElementById('set-teacher-name').value = settings.teacherName || '';
-    document.getElementById('set-school-name').value = settings.schoolName || '';
   },
 
   save: async function() {
@@ -78,7 +78,6 @@ var SettingsPage = {
     await SettingsDB.set('rewriteApiKey', document.getElementById('set-rewrite-key').value.trim());
     await SettingsDB.set('rewriteModel', document.getElementById('set-rewrite-model').value.trim());
     await SettingsDB.set('teacherName', document.getElementById('set-teacher-name').value.trim());
-    await SettingsDB.set('schoolName', document.getElementById('set-school-name').value.trim());
     Toast.show('设置已保存');
   },
 
