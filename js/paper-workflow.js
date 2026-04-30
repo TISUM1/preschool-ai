@@ -196,10 +196,12 @@ var PaperWorkflow = {
       return;
     }
 
-    App.showLoading('正在降重润色...');
+    App.showLoading('正在学术精修...');
 
     try {
+      var styleSamples = await PromptBuilder.getStyleSamples();
       var context = {
+        styleSamples: styleSamples,
         userInput: { topic: this.state.topic },
         paperState: {
           stage: 'polish',
@@ -226,10 +228,10 @@ var PaperWorkflow = {
 
       this.state.content = fullText;
       App.hideLoading();
-      Toast.show('降重润色完成');
+      Toast.show('学术精修完成');
     } catch(e) {
       App.hideLoading();
-      Toast.show('润色失败: ' + e.message, 'error');
+      Toast.show('精修失败: ' + e.message, 'error');
     }
   },
 
@@ -245,11 +247,14 @@ var PaperWorkflow = {
 
     // Dual-model rewrite: first pass with primary model (polish), second pass with rewrite model
     if (rewriteApiUrl && rewriteApiKey && rewriteModel) {
-      App.showLoading('双模型降重：第一轮润色...');
+      App.showLoading('双模型校准：第一轮精修...');
 
       try {
+        var styleSamples = await PromptBuilder.getStyleSamples();
+
         // Stage 1: Polish with primary model
         var polishContext = {
+          styleSamples: styleSamples,
           userInput: { topic: this.state.topic },
           paperState: {
             stage: 'polish',
@@ -273,9 +278,10 @@ var PaperWorkflow = {
         }, { temperature: 0.8, max_tokens: 8192, frequency_penalty: 0.5, presence_penalty: 0.3 });
 
         // Stage 2: Rewrite with second model
-        App.showLoading('双模型降重：第二轮改写...');
+        App.showLoading('双模型校准：第二轮改写...');
 
         var rewriteContext = {
+          styleSamples: styleSamples,
           userInput: { topic: this.state.topic },
           paperState: {
             stage: 'rewrite',
@@ -301,20 +307,22 @@ var PaperWorkflow = {
 
         this.state.content = finalText;
         App.hideLoading();
-        Toast.show('双模型降重完成（主模型润色 + 降重模型改写）');
+        Toast.show('双模型校准完成（主模型精修 + 降重模型改写）');
       } catch(e) {
         App.hideLoading();
-        Toast.show('双模型降重失败: ' + e.message, 'error');
+        Toast.show('双模型校准失败: ' + e.message, 'error');
       }
     } else {
       // Single-model rewrite (no second model configured)
-      var proceed = confirm('建议在设置中配置降重专用模型，双模型串联降重效果更佳。\n\n是否使用当前模型进行单模型改写？');
+      var proceed = confirm('建议在设置中配置降重专用模型，双模型串联校准效果更佳。\n\n是否使用当前模型进行单模型改写？');
       if (!proceed) return;
 
-      App.showLoading('正在改写...');
+      App.showLoading('正在校准...');
 
       try {
+        var styleSamples = await PromptBuilder.getStyleSamples();
         var context = {
+          styleSamples: styleSamples,
           userInput: { topic: this.state.topic },
           paperState: {
             stage: 'rewrite',
@@ -339,10 +347,10 @@ var PaperWorkflow = {
 
         this.state.content = fullText;
         App.hideLoading();
-        Toast.show('改写完成');
+        Toast.show('校准完成');
       } catch(e) {
         App.hideLoading();
-        Toast.show('改写失败: ' + e.message, 'error');
+        Toast.show('校准失败: ' + e.message, 'error');
       }
     }
   },
