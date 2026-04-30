@@ -2,68 +2,46 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#FF9EB5">
-  <meta name="description" content="Alice专属 - 生成高质量教案、观察记录、论文">
-  <title>Alice专属</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>幼师AI助手</title>
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="css/themes.css">
-  <link rel="stylesheet" href="css/style.css">
-  <script src="vendor/dexie.min.js" defer></script>
-  <script src="vendor/mammoth.browser.min.js" defer></script>
-  <script src="vendor/pdf.min.js" defer></script>
-  <script src="vendor/docx.min.js" defer></script>
+  <meta name="theme-color" content="#7C3AED">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/style.css?v=12">
 </head>
 <body>
+  <div id="app">
+    <div id="page-content"></div>
+    <nav id="bottom-nav">
+      <span class="nav-item active" data-page="home" onclick="Router.navigate('home')">🏠</span>
+      <span class="nav-item" data-page="library" onclick="Router.navigate('library')">📚</span>
+      <span class="nav-item" data-page="documents" onclick="Router.navigate('documents')">📄</span>
+      <span class="nav-item" data-page="settings" onclick="Router.navigate('settings')">⚙️</span>
+    </nav>
+  </div>
 
-<div id="app">
-  <main id="page-content"></main>
+  <script src="js/db.js?v=12"></script>
+  <script src="js/settings.js?v=12"></script>
+  <script src="js/api.js?v=12"></script>
+  <script src="js/app.js?v=12"></script>
+  <script src="js/router.js?v=12"></script>
+  <script src="js/prompt-builder.js?v=12"></script>
+  <script src="js/resource-library.js?v=12"></script>
+  <script src="js/generator-workflow.js?v=12"></script>
+  <script src="js/paper-workflow.js?v=12"></script>
+  <script src="js/template-parser.js?v=12"></script>
+  <script src="js/docx-exporter.js?v=12"></script>
 
-  <nav id="bottom-nav">
-    <button class="nav-item active" data-page="home">
-      <span class="nav-icon">🏠</span><span class="nav-label">首页</span>
-    </button>
-    <button class="nav-item" data-page="library">
-      <span class="nav-icon">📚</span><span class="nav-label">资源库</span>
-    </button>
-    <button class="nav-item" data-page="documents">
-      <span class="nav-icon">📂</span><span class="nav-label">历史文档</span>
-    </button>
-    <button class="nav-item" data-page="settings">
-      <span class="nav-icon">⚙️</span><span class="nav-label">设置</span>
-    </button>
-  </nav>
-
-  <button id="global-voice-btn" class="fab" title="语音输入">🎤</button>
+  <!-- Toast -->
   <div id="toast-container"></div>
-  <div id="loading-overlay" class="hidden">
-    <div class="spinner"></div>
-    <p id="loading-text">加载中...</p>
-  </div>
-  <div id="install-banner" class="hidden">
-    <span>添加到主屏幕，使用更方便</span>
-    <button id="install-btn">立即添加</button>
-    <button id="dismiss-btn">✕</button>
-  </div>
-</div>
 
-<script src="js/db.js" defer></script>
-<script src="js/router.js" defer></script>
-<script src="js/settings.js" defer></script>
-<script src="js/api.js" defer></script>
-<script src="js/voice-input.js" defer></script>
-<script src="js/template-parser.js" defer></script>
-<script src="js/resource-library.js" defer></script>
-<script src="js/prompt-builder.js" defer></script>
-<script src="js/docx-exporter.js" defer></script>
-<script src="js/paper-workflow.js" defer></script>
-<script src="js/generator-workflow.js" defer></script>
-<script src="js/app.js" defer></script>
+  <!-- Loading -->
+  <div id="loading-overlay" style="display:none;">
+    <div class="loading-spinner"></div>
+    <div id="loading-text" style="margin-top:12px;color:#fff;font-size:14px;">加载中...</div>
+  </div>
 
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js', { scope: './' }).catch(function(){});
-  }
-</script>
+  <!-- Voice Button (floating) -->
+  <button id="global-voice-btn" style="display:none;position:fixed;bottom:24px;right:24px;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#A78BFA);color:#fff;border:none;font-size:20px;box-shadow:0 2px 8px rgba(124,58,237,0.3);z-index:999;cursor:pointer;" onclick="App.startVoice()">🎤</button>
 </body>
 </html>
