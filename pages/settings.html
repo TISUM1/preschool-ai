@@ -71,13 +71,13 @@ var SettingsPage = {
   },
 
   save: async function() {
-    await SettingsDB.set('apiUrl', document.getElementById('set-api-url').value.trim());
-    await SettingsDB.set('apiKey', document.getElementById('set-api-key').value.trim());
-    await SettingsDB.set('model', document.getElementById('set-model').value.trim());
-    await SettingsDB.set('rewriteApiUrl', document.getElementById('set-rewrite-url').value.trim());
-    await SettingsDB.set('rewriteApiKey', document.getElementById('set-rewrite-key').value.trim());
-    await SettingsDB.set('rewriteModel', document.getElementById('set-rewrite-model').value.trim());
-    await SettingsDB.set('teacherName', document.getElementById('set-teacher-name').value.trim());
+    await AppSettings.set('apiUrl', document.getElementById('set-api-url').value.trim());
+    await AppSettings.set('apiKey', document.getElementById('set-api-key').value.trim());
+    await AppSettings.set('model', document.getElementById('set-model').value.trim());
+    await AppSettings.set('rewriteApiUrl', document.getElementById('set-rewrite-url').value.trim());
+    await AppSettings.set('rewriteApiKey', document.getElementById('set-rewrite-key').value.trim());
+    await AppSettings.set('rewriteModel', document.getElementById('set-rewrite-model').value.trim());
+    await AppSettings.set('teacherName', document.getElementById('set-teacher-name').value.trim());
     Toast.show('设置已保存');
   },
 
