@@ -61,12 +61,12 @@ var SettingsPage = {
   init: async function() {
     var settings = await SettingsDB.getAll();
 
-    document.getElementById('set-api-url').value = settings.apiUrl || '';
-    document.getElementById('set-api-key').value = settings.apiKey || '';
-    document.getElementById('set-model').value = settings.model || '';
-    document.getElementById('set-rewrite-url').value = settings.rewriteApiUrl || '';
-    document.getElementById('set-rewrite-key').value = settings.rewriteApiKey || '';
-    document.getElementById('set-rewrite-model').value = settings.rewriteModel || '';
+    document.getElementById('set-api-url').value = '';
+    document.getElementById('set-api-key').value = '';
+    document.getElementById('set-model').value = '';
+    document.getElementById('set-rewrite-url').value = '';
+    document.getElementById('set-rewrite-key').value = '';
+    document.getElementById('set-rewrite-model').value = '';
     document.getElementById('set-teacher-name').value = settings.teacherName || '计老师';
   },
 

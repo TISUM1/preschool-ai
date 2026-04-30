@@ -30,7 +30,7 @@ var ApiClient = {
   buildRequest: function(messages, options) {
     options = options || {};
     return {
-      model: AppSettings.getModel(),
+      model: options.model || AppSettings.getModel(),
       messages: messages,
       temperature: options.temperature || AppSettings.getTemperature(),
       top_p: options.top_p || 1.0,
