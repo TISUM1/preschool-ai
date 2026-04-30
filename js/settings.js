@@ -5,6 +5,10 @@
 
 var AppSettings = {
 
+  init: async function() {
+    // No-op: API credentials are not persisted
+  },
+
   getApiUrl: function() {
     return '';
   },
@@ -15,6 +19,14 @@ var AppSettings = {
 
   getModel: function() {
     return '';
+  },
+
+  getTemperature: function() {
+    return 0.7;
+  },
+
+  getTheme: function() {
+    return 'pastel';
   },
 
   getRewriteApiUrl: function() {
