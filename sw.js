@@ -1,4 +1,4 @@
-var CACHE_NAME = 'preschool-ai-v11';
+var CACHE_NAME = 'preschool-ai-v12';
 var CACHE_URLS = [
   './',
   'index.html',

@@ -42,7 +42,7 @@ const Router = {
     // Lazy-load page HTML or render inline
     let html = '';
     try {
-      const resp = await fetch(`pages/${page}.html`);
+      const resp = await fetch(`pages/${page}.html?v=12`);
       if (resp.ok) html = await resp.text();
     } catch (e) {
       html = `<div class="page-error"><p>页面加载失败</p></div>`;
