@@ -42,6 +42,6 @@ var AppSettings = {
   },
 
   getTeacherName: async function() {
-    return await SettingsDB.get('teacherName', '');
+    return await SettingsDB.get('teacherName', '计老师');
   }
 };
