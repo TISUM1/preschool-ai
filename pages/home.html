@@ -117,9 +117,8 @@
 <script>
 (function initHome() {
   var dateInfo = App.getDateString();
-  AppSettings.getTeacherName().then(function(name) {
-    document.getElementById('home-greeting').textContent = dateInfo.greeting + '，' + (name || '计老师') + ' 🌸';
-  });
+  var name = AppSettings.getTeacherName() || '计老师';
+  document.getElementById('home-greeting').textContent = dateInfo.greeting + '，' + name + ' 🌸';
   document.getElementById('home-date').textContent = '今天是' + dateInfo.dateStr + '，' + dateInfo.blessing;
 
   // Stats
