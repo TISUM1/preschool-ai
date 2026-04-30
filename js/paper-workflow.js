@@ -239,56 +239,111 @@ var PaperWorkflow = {
       return;
     }
 
-    // Check if a second model is configured
     var rewriteApiUrl = AppSettings.getRewriteApiUrl ? AppSettings.getRewriteApiUrl() : '';
     var rewriteApiKey = AppSettings.getRewriteApiKey ? AppSettings.getRewriteApiKey() : '';
-    if (!rewriteApiKey) {
-      var proceed = confirm('建议在设置中配置第二个AI模型用于降重改写，效果更佳。\n\n是否使用当前模型继续？');
-      if (!proceed) return;
-    }
+    var rewriteModel = AppSettings.getRewriteModel ? AppSettings.getRewriteModel() : '';
 
-    App.showLoading('正在多模型改写...');
+    // Dual-model rewrite: first pass with primary model (polish), second pass with rewrite model
+    if (rewriteApiUrl && rewriteApiKey && rewriteModel) {
+      App.showLoading('双模型降重：第一轮润色...');
 
-    try {
-      var context = {
-        userInput: { topic: this.state.topic },
-        paperState: {
-          stage: 'rewrite',
-          topic: this.state.topic,
-          content: this.state.content
-        }
-      };
-      var messages = await PromptBuilder.buildMessages('paper', context);
+      try {
+        // Stage 1: Polish with primary model
+        var polishContext = {
+          userInput: { topic: this.state.topic },
+          paperState: {
+            stage: 'polish',
+            topic: this.state.topic,
+            content: this.state.content
+          }
+        };
+        var polishMessages = await PromptBuilder.buildMessages('paper', polishContext);
 
-      var previewEl = document.getElementById('paper-preview');
-      var fullText = '';
-
-      if (previewEl) {
-        previewEl.style.display = 'block';
-        previewEl.innerHTML = '';
-      }
-
-      // Use rewrite API if configured, otherwise use current API
-      var options = { temperature: 0.9, max_tokens: 8192, frequency_penalty: 0.8, presence_penalty: 0.5 };
-      if (rewriteApiUrl && rewriteApiKey) {
-        options.apiUrl = rewriteApiUrl;
-        options.apiKey = rewriteApiKey;
-        options.model = AppSettings.getRewriteModel ? AppSettings.getRewriteModel() : '';
-      }
-
-      fullText = await ApiClient.chatStream(messages, function(delta, text) {
+        var previewEl = document.getElementById('paper-preview');
         if (previewEl) {
-          previewEl.innerHTML = App.markdownToHtml(text);
-          previewEl.scrollTop = previewEl.scrollHeight;
+          previewEl.style.display = 'block';
+          previewEl.innerHTML = '';
         }
-      }, options);
 
-      this.state.content = fullText;
-      App.hideLoading();
-      Toast.show('多模型改写完成');
-    } catch(e) {
-      App.hideLoading();
-      Toast.show('改写失败: ' + e.message, 'error');
+        var polishedText = await ApiClient.chatStream(polishMessages, function(delta, text) {
+          if (previewEl) {
+            previewEl.innerHTML = App.markdownToHtml(text);
+            previewEl.scrollTop = previewEl.scrollHeight;
+          }
+        }, { temperature: 0.8, max_tokens: 8192, frequency_penalty: 0.5, presence_penalty: 0.3 });
+
+        // Stage 2: Rewrite with second model
+        App.showLoading('双模型降重：第二轮改写...');
+
+        var rewriteContext = {
+          userInput: { topic: this.state.topic },
+          paperState: {
+            stage: 'rewrite',
+            topic: this.state.topic,
+            content: polishedText
+          }
+        };
+        var rewriteMessages = await PromptBuilder.buildMessages('paper', rewriteContext);
+
+        if (previewEl) previewEl.innerHTML = '';
+
+        var finalText = await ApiClient.chatStream(rewriteMessages, function(delta, text) {
+          if (previewEl) {
+            previewEl.innerHTML = App.markdownToHtml(text);
+            previewEl.scrollTop = previewEl.scrollHeight;
+          }
+        }, {
+          apiUrl: rewriteApiUrl,
+          apiKey: rewriteApiKey,
+          model: rewriteModel,
+          temperature: 0.9, max_tokens: 8192, frequency_penalty: 0.8, presence_penalty: 0.5
+        });
+
+        this.state.content = finalText;
+        App.hideLoading();
+        Toast.show('双模型降重完成（主模型润色 + 降重模型改写）');
+      } catch(e) {
+        App.hideLoading();
+        Toast.show('双模型降重失败: ' + e.message, 'error');
+      }
+    } else {
+      // Single-model rewrite (no second model configured)
+      var proceed = confirm('建议在设置中配置降重专用模型，双模型串联降重效果更佳。\n\n是否使用当前模型进行单模型改写？');
+      if (!proceed) return;
+
+      App.showLoading('正在改写...');
+
+      try {
+        var context = {
+          userInput: { topic: this.state.topic },
+          paperState: {
+            stage: 'rewrite',
+            topic: this.state.topic,
+            content: this.state.content
+          }
+        };
+        var messages = await PromptBuilder.buildMessages('paper', context);
+
+        var previewEl = document.getElementById('paper-preview');
+        if (previewEl) {
+          previewEl.style.display = 'block';
+          previewEl.innerHTML = '';
+        }
+
+        var fullText = await ApiClient.chatStream(messages, function(delta, text) {
+          if (previewEl) {
+            previewEl.innerHTML = App.markdownToHtml(text);
+            previewEl.scrollTop = previewEl.scrollHeight;
+          }
+        }, { temperature: 0.9, max_tokens: 8192, frequency_penalty: 0.8, presence_penalty: 0.5 });
+
+        this.state.content = fullText;
+        App.hideLoading();
+        Toast.show('改写完成');
+      } catch(e) {
+        App.hideLoading();
+        Toast.show('改写失败: ' + e.message, 'error');
+      }
     }
   },
 

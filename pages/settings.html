@@ -1,204 +1,140 @@
 <div class="page-header">
-  <h2>⚙️ 设置</h2>
+  <div class="back-row">
+    <span class="back-btn" onclick="Router.navigate('home')">←</span>
+    <h2>⚙️ 设置</h2>
+  </div>
 </div>
 
 <!-- API Settings -->
 <div class="card">
-  <div class="card-title">🤖 AI API 设置</div>
-
-  <label class="label">API 预设</label>
-  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;" id="api-preset-selector">
-    <span class="tag active" data-preset="deepseek" onclick="SettingsPage.selectPreset('deepseek')">DeepSeek</span>
-    <span class="tag" data-preset="qwen" onclick="SettingsPage.selectPreset('qwen')">通义千问</span>
-    <span class="tag" data-preset="custom" onclick="SettingsPage.selectPreset('custom')">自定义</span>
-  </div>
+  <div class="card-title">🔑 API 配置</div>
 
   <label class="label">API 地址</label>
-  <input class="input-box" id="set-api-url" placeholder="https://api.deepseek.com" style="font-size:13px;margin-bottom:8px;" onchange="SettingsPage.onFieldChange()">
+  <input class="input-box" id="set-api-url" placeholder="https://api.example.com/v1">
 
-  <label class="label">API Key</label>
-  <input class="input-box" id="set-api-key" type="password" placeholder="sk-..." style="font-size:13px;margin-bottom:8px;" onchange="SettingsPage.onFieldChange()">
+  <label class="label" style="margin-top:10px;">API Key</label>
+  <input class="input-box" id="set-api-key" type="password" placeholder="sk-...">
 
-  <label class="label">模型名称</label>
-  <div style="display:flex;gap:8px;">
-    <input class="input-box" id="set-model" placeholder="" style="font-size:13px;flex:1;" onchange="SettingsPage.onFieldChange()">
-    <button class="btn btn-outline btn-sm" onclick="SettingsPage.testConnection()">测试连接</button>
-  </div>
+  <label class="label" style="margin-top:10px;">模型名称</label>
+  <input class="input-box" id="set-model" placeholder="deepseek-chat">
 
-  <div style="font-size:11px;color:var(--text-muted);margin-top:8px;background:#FFFBF0;padding:8px;border-radius:8px;">
-    💡 兼容 OpenAI 的 API 均可使用，中转站请选择「自定义」填入地址和 Key
-  </div>
+  <button class="btn btn-outline btn-block" style="margin-top:10px;" onclick="SettingsPage.testConnection()">🔗 测试连接</button>
+  <div id="set-test-result" style="font-size:11px;margin-top:6px;text-align:center;"></div>
 </div>
 
-<!-- Rewrite Model -->
+<!-- Rewrite Model Settings -->
 <div class="card">
-  <div class="card-title">✨ 降重专用模型 <span style="font-weight:400;font-size:12px;color:var(--text-muted)">（可选）</span></div>
+  <div class="card-title">🔄 降重模型（可选）</div>
+  <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;">配置第二个模型用于降重改写，与主模型搭配效果更佳</div>
+
   <label class="label">API 地址</label>
-  <input class="input-box" id="set-rewrite-url" placeholder="如 https://dashscope.aliyuncs.com/compatible-mode/v1" style="font-size:13px;margin-bottom:8px;" onchange="SettingsPage.saveRewriteSettings()">
-  <label class="label">API Key</label>
-  <input class="input-box" id="set-rewrite-key" type="password" placeholder="降重专用 API Key" style="font-size:13px;margin-bottom:8px;" onchange="SettingsPage.saveRewriteSettings()">
-  <label class="label">模型名称</label>
-  <input class="input-box" id="set-rewrite-model" placeholder="如 qwen-plus" style="font-size:13px;margin-bottom:8px;" onchange="SettingsPage.saveRewriteSettings()">
-  <div style="font-size:11px;color:var(--text-muted);background:#F5F0FF;padding:8px;border-radius:8px;">
-    配置第二个AI模型用于"多模型改写"降重，不同模型生成分布差异可显著降低AIGC检测率。不配置则使用当前模型。
-  </div>
+  <input class="input-box" id="set-rewrite-url" placeholder="https://api.example.com/v1">
+
+  <label class="label" style="margin-top:10px;">API Key</label>
+  <input class="input-box" id="set-rewrite-key" type="password" placeholder="sk-...">
+
+  <label class="label" style="margin-top:10px;">模型名称</label>
+  <input class="input-box" id="set-rewrite-model" placeholder="gpt-4o-mini">
+
+  <button class="btn btn-outline btn-block" style="margin-top:10px;" onclick="SettingsPage.testRewriteConnection()">🔗 测试连接</button>
+  <div id="set-rewrite-test-result" style="font-size:11px;margin-top:6px;text-align:center;"></div>
 </div>
 
-<!-- Theme -->
+<!-- Teacher Info -->
 <div class="card">
-  <div class="card-title">🎨 外观主题</div>
-  <div style="display:flex;gap:8px;" id="theme-selector">
-    <div style="width:40px;height:40px;border-radius:20px;background:linear-gradient(135deg,#FF9EB5,#F0728C);cursor:pointer;" data-theme="pastel" onclick="SettingsPage.setTheme('pastel')"></div>
-    <div style="width:40px;height:40px;border-radius:20px;background:linear-gradient(135deg,#52C41A,#389E0D);cursor:pointer;" data-theme="forest" onclick="SettingsPage.setTheme('forest')"></div>
-    <div style="width:40px;height:40px;border-radius:20px;background:linear-gradient(135deg,#1890FF,#096DD9);cursor:pointer;" data-theme="ocean" onclick="SettingsPage.setTheme('ocean')"></div>
-    <div style="width:40px;height:40px;border-radius:20px;background:linear-gradient(135deg,#FA8C16,#D46B08);cursor:pointer;" data-theme="warm" onclick="SettingsPage.setTheme('warm')"></div>
-    <div style="width:40px;height:40px;border-radius:20px;background:linear-gradient(135deg,#9254DE,#722ED1);cursor:pointer;" data-theme="lavender" onclick="SettingsPage.setTheme('lavender')"></div>
-  </div>
+  <div class="card-title">👩‍🏫 教师信息</div>
+
+  <label class="label">姓名</label>
+  <input class="input-box" id="set-teacher-name" placeholder="张老师">
+
+  <label class="label" style="margin-top:10px;">幼儿园名称</label>
+  <input class="input-box" id="set-school-name" placeholder="XX幼儿园">
 </div>
 
-<!-- Class Management -->
-<div class="card">
-  <div class="card-title">👶 班级与学生</div>
-  <div style="display:flex;align-items:center;justify-content:space-between;">
-    <div>
-      <div style="font-size:14px;color:var(--text);">管理班级和学生信息</div>
-      <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">用于观察记录个性化生成</div>
-    </div>
-    <button class="btn btn-outline btn-sm" onclick="Router.navigate('classes')">管理 →</button>
-  </div>
-</div>
-
-<!-- Profile -->
-<div class="card">
-  <div class="card-title">👤 个人信息</div>
-  <label class="label">称呼</label>
-  <input class="input-box" id="set-name" placeholder="计老师" style="font-size:13px;" onchange="SettingsPage.onFieldChange()">
-</div>
-
-<!-- Footer -->
-<div style="text-align:center;padding:8px 0 16px;">
-  <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">📱 Alice专属 v5.20</div>
-  <button class="btn btn-outline btn-sm" onclick="SettingsPage.exportAll()">导出数据</button>
-  <button class="btn btn-outline btn-sm" style="margin-left:6px;color:var(--error);border-color:var(--error);" onclick="SettingsPage.clearAll()">清除数据</button>
-</div>
+<!-- Save Button -->
+<button class="btn btn-primary btn-block" onclick="SettingsPage.save()">💾 保存设置</button>
 
 <script>
 var SettingsPage = {
-  _preset: 'deepseek',
 
   init: async function() {
-    var provider = AppSettings.getApiProvider();
-    var apiUrl = AppSettings.getApiUrl();
-    var apiKey = AppSettings.getApiKey();
-    var model = AppSettings.getModel();
-    var theme = AppSettings.getTheme();
-    var name = AppSettings.getTeacherName();
+    var settings = await SettingsDB.getAll();
 
-    // Determine preset
-    if (apiUrl && apiUrl.includes('deepseek')) this._preset = 'deepseek';
-    else if (apiUrl && apiUrl.includes('dashscope')) this._preset = 'qwen';
-    else this._preset = 'custom';
-
-    document.getElementById('set-api-url').value = apiUrl || '';
-    document.getElementById('set-api-key').value = apiKey || '';
-    document.getElementById('set-model').value = model || '';
-    document.getElementById('set-name').value = name === '计老师' ? '' : name;
-
-    this.selectPreset(this._preset);
-    this._highlightTheme(theme);
-
-    // Load rewrite model settings
-    document.getElementById('set-rewrite-url').value = AppSettings.getRewriteApiUrl() || '';
-    document.getElementById('set-rewrite-key').value = AppSettings.getRewriteApiKey() || '';
-    document.getElementById('set-rewrite-model').value = AppSettings.getRewriteModel() || '';
+    document.getElementById('set-api-url').value = settings.apiUrl || '';
+    document.getElementById('set-api-key').value = settings.apiKey || '';
+    document.getElementById('set-model').value = settings.model || '';
+    document.getElementById('set-rewrite-url').value = settings.rewriteApiUrl || '';
+    document.getElementById('set-rewrite-key').value = settings.rewriteApiKey || '';
+    document.getElementById('set-rewrite-model').value = settings.rewriteModel || '';
+    document.getElementById('set-teacher-name').value = settings.teacherName || '';
+    document.getElementById('set-school-name').value = settings.schoolName || '';
   },
 
-  selectPreset: function(preset) {
-    this._preset = preset;
-    document.querySelectorAll('#api-preset-selector .tag').forEach(function(t) {
-      t.classList.toggle('active', t.dataset.preset === preset);
-    });
-
-    var presets = {
-      deepseek: { url: 'https://api.deepseek.com', model: '' },
-      qwen: { url: 'https://dashscope.aliyuncs.com/compatible-mode/v1', model: 'qwen-plus' },
-      custom: { url: '', model: '' }
-    };
-
-    var p = presets[preset];
-    if (preset !== 'custom') {
-      document.getElementById('set-api-url').value = p.url;
-      document.getElementById('set-model').value = p.model;
-    }
-    this.saveApiSettings();
-  },
-
-  onFieldChange: function() {
-    this._preset = 'custom';
-    document.querySelectorAll('#api-preset-selector .tag').forEach(function(t) {
-      t.classList.toggle('active', t.dataset.preset === 'custom');
-    });
-    this.saveApiSettings();
-  },
-
-  saveApiSettings: async function() {
-    await AppSettings.set('apiProvider', this._preset);
-    await AppSettings.set('apiUrl', document.getElementById('set-api-url').value.trim());
-    await AppSettings.set('apiKey', document.getElementById('set-api-key').value.trim());
-    await AppSettings.set('model', document.getElementById('set-model').value.trim());
-    var nameVal = document.getElementById('set-name').value.trim();
-    if (nameVal) await AppSettings.set('teacherName', nameVal);
-  },
-
-  saveRewriteSettings: async function() {
-    await AppSettings.set('rewriteApiUrl', document.getElementById('set-rewrite-url').value.trim());
-    await AppSettings.set('rewriteApiKey', document.getElementById('set-rewrite-key').value.trim());
-    await AppSettings.set('rewriteModel', document.getElementById('set-rewrite-model').value.trim());
-  },
-
-  setTheme: async function(theme) {
-    document.documentElement.setAttribute('data-theme', theme);
-    await AppSettings.set('theme', theme);
-    this._highlightTheme(theme);
-    Toast.show('主题已切换');
-  },
-
-  _highlightTheme: function(theme) {
-    document.querySelectorAll('#theme-selector div').forEach(function(d) {
-      var isActive = d.dataset.theme === theme;
-      d.style.border = isActive ? '3px solid white' : '3px solid transparent';
-      d.style.boxShadow = isActive ? '0 0 0 2px var(--primary)' : 'none';
-    });
+  save: async function() {
+    await SettingsDB.set('apiUrl', document.getElementById('set-api-url').value.trim());
+    await SettingsDB.set('apiKey', document.getElementById('set-api-key').value.trim());
+    await SettingsDB.set('model', document.getElementById('set-model').value.trim());
+    await SettingsDB.set('rewriteApiUrl', document.getElementById('set-rewrite-url').value.trim());
+    await SettingsDB.set('rewriteApiKey', document.getElementById('set-rewrite-key').value.trim());
+    await SettingsDB.set('rewriteModel', document.getElementById('set-rewrite-model').value.trim());
+    await SettingsDB.set('teacherName', document.getElementById('set-teacher-name').value.trim());
+    await SettingsDB.set('schoolName', document.getElementById('set-school-name').value.trim());
+    Toast.show('设置已保存');
   },
 
   testConnection: async function() {
-    await this.saveApiSettings();
+    var url = document.getElementById('set-api-url').value.trim();
     var key = document.getElementById('set-api-key').value.trim();
-    if (!key) {
-      Toast.show('请先填写 API Key', 'error');
+    var model = document.getElementById('set-model').value.trim();
+    var resultEl = document.getElementById('set-test-result');
+
+    if (!url || !key || !model) {
+      resultEl.textContent = '请先填写完整的 API 地址、Key 和模型名称';
+      resultEl.style.color = '#FF4D4F';
       return;
     }
-    App.showLoading('测试连接...');
+
+    resultEl.textContent = '正在测试连接...';
+    resultEl.style.color = 'var(--text-muted)';
+
     try {
-      var msg = await ApiClient.chat([{ role: 'user', content: '你好，回复"连接成功"' }], { stream: false, max_tokens: 20 });
-      App.hideLoading();
-      Toast.show('连接成功', 'success');
+      var response = await ApiClient.chat(
+        [{ role: 'user', content: '你好，请回复"连接成功"' }],
+        { apiUrl: url, apiKey: key, model: model }
+      );
+      resultEl.textContent = '✅ 连接成功：' + (response || '已响应');
+      resultEl.style.color = '#52C41A';
     } catch(e) {
-      App.hideLoading();
-      Toast.show('连接失败: ' + e.message, 'error');
+      resultEl.textContent = '❌ 连接失败：' + e.message;
+      resultEl.style.color = '#FF4D4F';
     }
   },
 
-  exportAll: function() {
-    Toast.show('数据导出功能将在第2阶段实现');
-  },
+  testRewriteConnection: async function() {
+    var url = document.getElementById('set-rewrite-url').value.trim();
+    var key = document.getElementById('set-rewrite-key').value.trim();
+    var model = document.getElementById('set-rewrite-model').value.trim();
+    var resultEl = document.getElementById('set-rewrite-test-result');
 
-  clearAll: function() {
-    if (confirm('确定要清除所有本地数据吗？此操作不可恢复。')) {
-      db.delete().then(function() {
-        Toast.show('数据已清除，请刷新页面');
-        setTimeout(function() { location.reload(); }, 1500);
-      });
+    if (!url || !key || !model) {
+      resultEl.textContent = '请先填写完整的降重模型 API 地址、Key 和模型名称';
+      resultEl.style.color = '#FF4D4F';
+      return;
+    }
+
+    resultEl.textContent = '正在测试连接...';
+    resultEl.style.color = 'var(--text-muted)';
+
+    try {
+      var response = await ApiClient.chat(
+        [{ role: 'user', content: '你好，请回复"连接成功"' }],
+        { apiUrl: url, apiKey: key, model: model }
+      );
+      resultEl.textContent = '✅ 连接成功：' + (response || '已响应');
+      resultEl.style.color = '#52C41A';
+    } catch(e) {
+      resultEl.textContent = '❌ 连接失败：' + e.message;
+      resultEl.style.color = '#FF4D4F';
     }
   }
 };
