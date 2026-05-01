@@ -74,6 +74,46 @@ var PaperWorkflow = {
     Router.navigate('generate-paper-hastopic');
   },
 
+  // --- Stage 3: Generate Outline ---
+
+  generateOutline: async function() {
+    var topicInput = document.getElementById('paper-topic');
+    var topic = topicInput ? topicInput.value.trim() : '';
+    if (!topic) {
+      Toast.show('请输入论文题目', 'error');
+      return;
+    }
+
+    this.state.topic = topic;
+    App.showLoading('AI 正在生成论文大纲...');
+
+    try {
+      var messages = PromptBuilder.buildOutlineRequest(topic, this.state.wordCount);
+      var outline = await ApiClient.chat(messages, {
+        stream: false,
+        max_tokens: 8192,
+        temperature: 0.7
+      });
+
+      this.state.outline = outline;
+
+      var previewEl = document.getElementById('outline-preview');
+      if (previewEl) {
+        previewEl.innerHTML = App.markdownToHtml(outline);
+        previewEl.style.textAlign = 'left';
+        previewEl.style.background = '#fff';
+        previewEl.style.padding = '12px';
+        previewEl.style.fontSize = '13px';
+        previewEl.style.lineHeight = '1.8';
+      }
+
+      App.hideLoading();
+    } catch(e) {
+      App.hideLoading();
+      Toast.show('大纲生成失败: ' + e.message, 'error');
+    }
+  },
+
   // --- Helpers ---
 
   _parseTopics: function(text) {
