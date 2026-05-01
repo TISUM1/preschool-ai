@@ -57,7 +57,7 @@ var PaperWorkflow = {
       };
       var messages = await PromptBuilder.buildMessages('paper', context);
 
-      var outlineText = await ApiClient.chat(messages, { stream: false, max_tokens: 8192 });
+      var outlineText = await ApiClient.chat(messages, { stream: false, max_tokens: 16384 });
       this.state.outline = outlineText;
 
       // Self-check outline
@@ -396,6 +396,7 @@ var PaperWorkflow = {
       var messages = PromptBuilder.buildCheckPrompt(stage, content, checklist);
       var response = await ApiClient.chat(messages, {
         stream: false,
+        max_tokens: 16384,
         temperature: 0.8,
         frequency_penalty: 0.3,
         presence_penalty: 0.2
@@ -467,6 +468,7 @@ var PaperWorkflow = {
       var messages = PromptBuilder.buildVerifyPrompt(stage, content, checklist);
       var response = await ApiClient.chat(messages, {
         stream: false,
+        max_tokens: 4096,
         temperature: 0.3,
         frequency_penalty: 0,
         presence_penalty: 0
