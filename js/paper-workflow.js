@@ -82,21 +82,21 @@ var PaperWorkflow = {
 
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i].trim();
-      var match = line.match(/^[\d]+[\.、．)]\s*(.+)/);
+      if (!line) continue;
+
+      // Try: 1. / 1、 / 1) / （1） etc.
+      var match = line.match(/^[\(（]?[\d]+[\.、．)\）]\s*(.+)/);
       if (match) {
-        var topic = match[1].trim();
-        topic = topic.replace(/[*"「」""]/g, '').trim();
-        if (topic.length > 3) {
-          topics.push(topic);
-        }
+        var topic = match[1].trim().replace(/[*"「」""]/g, '').trim();
+        if (topic.length > 3) topics.push(topic);
       }
     }
 
-    // Fallback: try to extract any line that looks like a title
+    // Fallback: try lines that look like titles (contain ：or 的, 15-80 chars)
     if (topics.length === 0) {
       for (var j = 0; j < lines.length; j++) {
         var l = lines[j].trim();
-        if (l.length > 5 && l.length < 100 && !l.startsWith('以下') && !l.startsWith('推荐')) {
+        if (l.length > 10 && l.length < 80 && (l.indexOf('：') !== -1 || l.indexOf('的') !== -1)) {
           topics.push(l.replace(/[*"「」""]/g, '').trim());
         }
       }
