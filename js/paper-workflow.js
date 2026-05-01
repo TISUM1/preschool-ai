@@ -401,26 +401,50 @@ var PaperWorkflow = {
         presence_penalty: 0.2
       });
 
+      var checked = null;
+
+      // Try to extract text after "---完整文本---" marker
       var marker = '---完整文本---';
       var idx = response.indexOf(marker);
       if (idx !== -1) {
-        var checked = response.substring(idx + marker.length).trim();
-        if (checked.length > content.length * 0.5) {
-          if (stage === 'outline') {
-            this.state.outline = checked;
-          } else {
-            this.state.content = checked;
-          }
-          var previewEl = document.getElementById('paper-preview');
-          if (previewEl) {
-            var displayText = stage === 'outline' ? this.state.outline : this.state.content;
-            previewEl.innerHTML = App.markdownToHtml(displayText);
+        checked = response.substring(idx + marker.length).trim();
+      }
+
+      // Fallback: if no marker found, try to extract the largest text block
+      // (AI sometimes forgets the marker but still outputs the full text)
+      if (!checked || checked.length < content.length * 0.5) {
+        // Look for common section headers that indicate the start of the actual text
+        var sectionPatterns = ['一、', '摘要', '【题目】'];
+        for (var p = 0; p < sectionPatterns.length; p++) {
+          var sIdx = response.indexOf(sectionPatterns[p]);
+          if (sIdx !== -1) {
+            var candidate = response.substring(sIdx).trim();
+            if (candidate.length > content.length * 0.5) {
+              checked = candidate;
+              break;
+            }
           }
         }
       }
 
-      App.hideLoading();
-      Toast.show(stageName + '自检完成');
+      // Apply if we got a valid result
+      if (checked && checked.length > content.length * 0.5) {
+        if (stage === 'outline') {
+          this.state.outline = checked;
+        } else {
+          this.state.content = checked;
+        }
+        var previewEl = document.getElementById('paper-preview');
+        if (previewEl) {
+          var displayText = stage === 'outline' ? this.state.outline : this.state.content;
+          previewEl.innerHTML = App.markdownToHtml(displayText);
+        }
+        App.hideLoading();
+        Toast.show(stageName + '自检完成，已修正问题');
+      } else {
+        App.hideLoading();
+        Toast.show(stageName + '自检完成（未检测到修正内容）');
+      }
     } catch(e) {
       App.hideLoading();
       Toast.show('自检失败: ' + e.message, 'error');
