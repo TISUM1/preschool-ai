@@ -236,8 +236,8 @@ var PaperWorkflow = {
       this.state.content = fullText;
       App.hideLoading();
 
-      // Self-check polish
-      await this.checkResult('polish');
+      // Verify-only check (preserves anti-detection work)
+      await this.verifyResult('polish');
 
       Toast.show('学术精修完成');
     } catch(e) {
@@ -319,8 +319,11 @@ var PaperWorkflow = {
         this.state.content = finalText;
         App.hideLoading();
 
-        // Self-check rewrite
-        await this.checkResult('rewrite');
+        // Verify-only check (preserves anti-detection work)
+        await this.verifyResult('rewrite');
+
+        // Auto-chain paragraph perturbation
+        await this.perturbContent();
 
         Toast.show('双模型校准完成（主模型精修 + 降重模型改写）');
       } catch(e) {
@@ -363,8 +366,11 @@ var PaperWorkflow = {
         this.state.content = fullText;
         App.hideLoading();
 
-        // Self-check rewrite
-        await this.checkResult('rewrite');
+        // Verify-only check (preserves anti-detection work)
+        await this.verifyResult('rewrite');
+
+        // Auto-chain paragraph perturbation
+        await this.perturbContent();
 
         Toast.show('校准完成');
       } catch(e) {
@@ -388,7 +394,12 @@ var PaperWorkflow = {
 
     try {
       var messages = PromptBuilder.buildCheckPrompt(stage, content, checklist);
-      var response = await ApiClient.chat(messages, { stream: false });
+      var response = await ApiClient.chat(messages, {
+        stream: false,
+        temperature: 0.8,
+        frequency_penalty: 0.3,
+        presence_penalty: 0.2
+      });
 
       var marker = '---完整文本---';
       var idx = response.indexOf(marker);
@@ -414,6 +425,66 @@ var PaperWorkflow = {
       App.hideLoading();
       Toast.show('自检失败: ' + e.message, 'error');
     }
+  },
+
+  // --- Verify-only check (no full-text regeneration, used after anti-detection stages) ---
+
+  verifyResult: async function(stage) {
+    var content = this.state.content;
+    if (!content) return;
+
+    var checklist = PromptBuilder.checklists[stage];
+    if (!checklist) return;
+
+    var stageName = { polish: '精修结果', rewrite: '校准结果' }[stage] || '';
+    App.showLoading('正在验证' + stageName + '...');
+
+    try {
+      var messages = PromptBuilder.buildVerifyPrompt(stage, content, checklist);
+      var response = await ApiClient.chat(messages, {
+        stream: false,
+        temperature: 0.3,
+        frequency_penalty: 0,
+        presence_penalty: 0
+      });
+
+      var fixes = this._parseVerifyFixes(response);
+      var appliedCount = 0;
+
+      for (var i = 0; i < fixes.length; i++) {
+        var fix = fixes[i];
+        var count = content.split(fix.search).length - 1;
+        if (count === 1) {
+          content = content.replace(fix.search, fix.replace);
+          appliedCount++;
+        }
+      }
+
+      this.state.content = content;
+      var previewEl = document.getElementById('paper-preview');
+      if (previewEl) {
+        previewEl.innerHTML = App.markdownToHtml(this.state.content);
+      }
+
+      App.hideLoading();
+      Toast.show(stageName + '验证：' + fixes.length + ' 项问题，' + appliedCount + ' 项已修正');
+    } catch(e) {
+      App.hideLoading();
+      Toast.show('验证失败: ' + e.message, 'error');
+    }
+  },
+
+  _parseVerifyFixes: function(response) {
+    var fixes = [];
+    var lines = response.split('\n');
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      var match = line.match(/修正[：:]\s*将["""](.+?)["""]\s*改为\s*["""](.+?)["""]/);
+      if (match) {
+        fixes.push({ search: match[1], replace: match[2] });
+      }
+    }
+    return fixes;
   },
 
   // --- Paragraph-level perturbation ---
@@ -451,11 +522,22 @@ var PaperWorkflow = {
     for (var k = 0; k < rewriteIndices.length; k++) {
       var idx = rewriteIndices[k];
       var para = paragraphs[idx];
-      var perturbation = pool[Math.floor(Math.random() * pool.length)];
+      var perturbation;
+      if (para.length > 200) {
+        var shuffled = pool.slice().sort(function() { return Math.random() - 0.5; });
+        perturbation = shuffled[0] + '；' + shuffled[1];
+      } else {
+        perturbation = pool[Math.floor(Math.random() * pool.length)];
+      }
       var messages = PromptBuilder.buildPerturbPrompt(para, perturbation);
 
       try {
-        var rewritten = await ApiClient.chat(messages, { stream: false });
+        var rewritten = await ApiClient.chat(messages, {
+          stream: false,
+          temperature: 1.0,
+          frequency_penalty: 0.8,
+          presence_penalty: 0.6
+        });
         if (rewritten && rewritten.trim()) results[idx] = rewritten.trim();
       } catch(e) {
         // Keep original on failure
