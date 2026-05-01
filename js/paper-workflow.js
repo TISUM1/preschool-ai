@@ -60,8 +60,11 @@ var PaperWorkflow = {
       var outlineText = await ApiClient.chat(messages, { stream: false, max_tokens: 8192 });
       this.state.outline = outlineText;
 
+      // Self-check outline
+      await this.checkResult('outline');
+
       // Parse outline into items for editing
-      this.state.outlineItems = this._parseOutline(outlineText);
+      this.state.outlineItems = this._parseOutline(this.state.outline);
 
       // Show outline editor
       this._renderOutlineEditor();
@@ -118,6 +121,10 @@ var PaperWorkflow = {
       var rewriteActions = document.getElementById('hs-rewrite-actions');
       if (rewriteActions) rewriteActions.style.display = 'flex';
       App.hideLoading();
+
+      // Self-check content
+      await this.checkResult('content');
+
       Toast.show('论文初稿已生成');
     } catch(e) {
       App.hideLoading();
@@ -228,6 +235,10 @@ var PaperWorkflow = {
 
       this.state.content = fullText;
       App.hideLoading();
+
+      // Self-check polish
+      await this.checkResult('polish');
+
       Toast.show('学术精修完成');
     } catch(e) {
       App.hideLoading();
@@ -307,6 +318,10 @@ var PaperWorkflow = {
 
         this.state.content = finalText;
         App.hideLoading();
+
+        // Self-check rewrite
+        await this.checkResult('rewrite');
+
         Toast.show('双模型校准完成（主模型精修 + 降重模型改写）');
       } catch(e) {
         App.hideLoading();
@@ -347,6 +362,10 @@ var PaperWorkflow = {
 
         this.state.content = fullText;
         App.hideLoading();
+
+        // Self-check rewrite
+        await this.checkResult('rewrite');
+
         Toast.show('校准完成');
       } catch(e) {
         App.hideLoading();
