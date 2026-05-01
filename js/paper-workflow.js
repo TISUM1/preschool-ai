@@ -374,6 +374,104 @@ var PaperWorkflow = {
     }
   },
 
+  // --- Self-check ---
+
+  checkResult: async function(stage) {
+    var content = stage === 'outline' ? this.state.outline : this.state.content;
+    if (!content) return;
+
+    var checklist = PromptBuilder.checklists[stage];
+    if (!checklist) return;
+
+    var stageName = { outline: '大纲', content: '论文内容', polish: '精修结果', rewrite: '校准结果' }[stage] || '';
+    App.showLoading('正在自检' + stageName + '...');
+
+    try {
+      var messages = PromptBuilder.buildCheckPrompt(stage, content, checklist);
+      var response = await ApiClient.chat(messages, { stream: false });
+
+      var marker = '---完整文本---';
+      var idx = response.indexOf(marker);
+      if (idx !== -1) {
+        var checked = response.substring(idx + marker.length).trim();
+        if (checked.length > content.length * 0.5) {
+          if (stage === 'outline') {
+            this.state.outline = checked;
+          } else {
+            this.state.content = checked;
+          }
+          var previewEl = document.getElementById('paper-preview');
+          if (previewEl) {
+            var displayText = stage === 'outline' ? this.state.outline : this.state.content;
+            previewEl.innerHTML = App.markdownToHtml(displayText);
+          }
+        }
+      }
+
+      App.hideLoading();
+      Toast.show(stageName + '自检完成');
+    } catch(e) {
+      App.hideLoading();
+      Toast.show('自检失败: ' + e.message, 'error');
+    }
+  },
+
+  // --- Paragraph-level perturbation ---
+
+  perturbContent: async function() {
+    if (!this.state.content) {
+      Toast.show('请先生成论文内容', 'error');
+      return;
+    }
+
+    var text = this.state.content;
+    var rawParts = text.split(/\n\n+/);
+    var paragraphs = [];
+
+    for (var i = 0; i < rawParts.length; i++) {
+      var p = rawParts[i].trim();
+      if (p) paragraphs.push(p);
+    }
+
+    var rewriteIndices = [];
+    for (var j = 0; j < paragraphs.length; j++) {
+      if (paragraphs[j].length > 20) rewriteIndices.push(j);
+    }
+
+    if (rewriteIndices.length === 0) {
+      Toast.show('论文内容为空', 'error');
+      return;
+    }
+
+    App.showLoading('逐段扰动降重 (0/' + rewriteIndices.length + ')...');
+
+    var pool = PromptBuilder.perturbationPool;
+    var results = paragraphs.slice();
+
+    for (var k = 0; k < rewriteIndices.length; k++) {
+      var idx = rewriteIndices[k];
+      var para = paragraphs[idx];
+      var perturbation = pool[Math.floor(Math.random() * pool.length)];
+      var messages = PromptBuilder.buildPerturbPrompt(para, perturbation);
+
+      try {
+        var rewritten = await ApiClient.chat(messages, { stream: false });
+        if (rewritten && rewritten.trim()) results[idx] = rewritten.trim();
+      } catch(e) {
+        // Keep original on failure
+      }
+
+      document.getElementById('loading-text').textContent = '逐段扰动降重 (' + (k + 1) + '/' + rewriteIndices.length + ')...';
+    }
+
+    this.state.content = results.join('\n\n');
+    App.hideLoading();
+    Toast.show('逐段扰动完成，共处理 ' + rewriteIndices.length + ' 段');
+
+    var previewEl = document.getElementById('paper-preview');
+    if (previewEl) previewEl.innerHTML = App.markdownToHtml(this.state.content);
+  },
+
   // --- Common ---
 
   saveDocument: async function() {
