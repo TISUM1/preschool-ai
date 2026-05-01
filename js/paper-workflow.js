@@ -540,36 +540,82 @@ var PaperWorkflow = {
       return;
     }
 
-    App.showLoading('逐段扰动降重 (0/' + rewriteIndices.length + ')...');
-
     var pool = PromptBuilder.perturbationPool;
     var results = paragraphs.slice();
+    var batchSize = 3;
+    var totalBatches = Math.ceil(rewriteIndices.length / batchSize);
 
-    for (var k = 0; k < rewriteIndices.length; k++) {
-      var idx = rewriteIndices[k];
-      var para = paragraphs[idx];
-      var perturbation;
-      if (para.length > 200) {
-        var shuffled = pool.slice().sort(function() { return Math.random() - 0.5; });
-        perturbation = shuffled[0] + '；' + shuffled[1];
-      } else {
-        perturbation = pool[Math.floor(Math.random() * pool.length)];
+    App.showLoading('逐段扰动降重 (0/' + rewriteIndices.length + ')...');
+
+    for (var batchStart = 0; batchStart < rewriteIndices.length; batchStart += batchSize) {
+      var batchEnd = Math.min(batchStart + batchSize, rewriteIndices.length);
+      var batchIndices = rewriteIndices.slice(batchStart, batchEnd);
+      var batchItems = [];
+
+      for (var b = 0; b < batchIndices.length; b++) {
+        var idx = batchIndices[b];
+        var para = paragraphs[idx];
+        var perturbation;
+        if (para.length > 200) {
+          var shuffled = pool.slice().sort(function() { return Math.random() - 0.5; });
+          perturbation = shuffled[0] + '；' + shuffled[1];
+        } else {
+          perturbation = pool[Math.floor(Math.random() * pool.length)];
+        }
+        batchItems.push({ index: idx, paragraph: para, perturbation: perturbation });
       }
-      var messages = PromptBuilder.buildPerturbPrompt(para, perturbation);
 
+      // Single item: use individual prompt for best effect
+      // Multiple items: use batch prompt for speed
       try {
-        var rewritten = await ApiClient.chat(messages, {
-          stream: false,
-          temperature: 1.0,
-          frequency_penalty: 0.8,
-          presence_penalty: 0.6
-        });
-        if (rewritten && rewritten.trim()) results[idx] = rewritten.trim();
+        if (batchItems.length === 1) {
+          var messages = PromptBuilder.buildPerturbPrompt(batchItems[0].paragraph, batchItems[0].perturbation);
+          var rewritten = await ApiClient.chat(messages, {
+            stream: false,
+            temperature: 1.0,
+            frequency_penalty: 0.8,
+            presence_penalty: 0.6
+          });
+          if (rewritten && rewritten.trim()) results[batchItems[0].index] = rewritten.trim();
+        } else {
+          var batchMessages = PromptBuilder.buildBatchPerturbPrompt(batchItems);
+          var batchResponse = await ApiClient.chat(batchMessages, {
+            stream: false,
+            temperature: 1.0,
+            frequency_penalty: 0.8,
+            presence_penalty: 0.6
+          });
+
+          // Split response by "---段---" separator
+          var rewrittenParts = batchResponse.split('---段---');
+          for (var r = 0; r < rewrittenParts.length && r < batchItems.length; r++) {
+            var part = rewrittenParts[r].trim();
+            if (part) results[batchItems[r].index] = part;
+          }
+
+          // Fallback: if separator not found, try assigning whole response to first item
+          if (rewrittenParts.length === 1 && batchItems.length > 1) {
+            // Batch failed to separate, fall back to individual calls
+            for (var f = 0; f < batchItems.length; f++) {
+              var fallbackMsgs = PromptBuilder.buildPerturbPrompt(batchItems[f].paragraph, batchItems[f].perturbation);
+              try {
+                var fallbackResult = await ApiClient.chat(fallbackMsgs, {
+                  stream: false,
+                  temperature: 1.0,
+                  frequency_penalty: 0.8,
+                  presence_penalty: 0.6
+                });
+                if (fallbackResult && fallbackResult.trim()) results[batchItems[f].index] = fallbackResult.trim();
+              } catch(e2) {}
+            }
+          }
+        }
       } catch(e) {
-        // Keep original on failure
+        // Keep originals on failure
       }
 
-      document.getElementById('loading-text').textContent = '逐段扰动降重 (' + (k + 1) + '/' + rewriteIndices.length + ')...';
+      var processed = Math.min(batchEnd, rewriteIndices.length);
+      document.getElementById('loading-text').textContent = '逐段扰动降重 (' + processed + '/' + rewriteIndices.length + ')...';
     }
 
     this.state.content = results.join('\n\n');

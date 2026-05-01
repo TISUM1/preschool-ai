@@ -349,6 +349,32 @@ var PromptBuilder = {
   },
 
   /**
+   * Build messages for batch perturbation (2-3 paragraphs per API call)
+   */
+  buildBatchPerturbPrompt: function(items) {
+    var system = '你是一位学前教育领域的学术编辑。你将收到论文中的多个段落，请逐段改写。\n\n'
+      + '【改写规则】\n'
+      + '1. 每段独立改写，保持该段的核心论点和学术含义不变\n'
+      + '2. 保持第三人称客观学术语气\n'
+      + '3. 保持引用标注[1][2][3]不变\n'
+      + '4. 每段必须执行对应的【扰动指令】\n'
+      + '5. 改写后的每段字数与原文相近（±20%）\n'
+      + '6. 用词和句式必须与原文显著不同\n\n'
+      + '【输出格式】\n'
+      + '每段改写结果之间用"---段---"分隔，不要输出任何解释。\n\n';
+
+    var userParts = [];
+    for (var i = 0; i < items.length; i++) {
+      userParts.push('【段落' + (i + 1) + '·扰动指令：' + items[i].perturbation + '】\n' + items[i].paragraph);
+    }
+
+    return [
+      { role: 'system', content: system },
+      { role: 'user', content: userParts.join('\n\n') }
+    ];
+  },
+
+  /**
    * Checklists for self-verification at each stage
    */
   checklists: {
