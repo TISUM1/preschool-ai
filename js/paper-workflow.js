@@ -41,8 +41,7 @@ var PaperWorkflow = {
     App.showLoading('AI 正在为你推荐选题...');
 
     try {
-      var resourceContext = await ResourceLibrary.getContextForType('paper');
-      var messages = PromptBuilder.buildPaperTopicRequest(direction, resourceContext);
+      var messages = await PromptBuilder.buildPaperTopicRequest(direction);
       var rawText = await ApiClient.chat(messages, { stream: false });
 
       var topics = this._parseTopics(rawText);

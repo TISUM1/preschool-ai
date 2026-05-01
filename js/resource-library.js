@@ -111,6 +111,26 @@ var ResourceLibrary = {
   },
 
   /**
+   * Get paper topic library from resource file names
+   * Used by prompt-builder to inject topic references for AI to learn from
+   */
+  getTopicLibrary: async function() {
+    var papers = await ResourceDB.getAll('paper');
+    if (!papers || papers.length === 0) return '';
+
+    var topics = [];
+    for (var i = 0; i < papers.length; i++) {
+      var name = (papers[i].fileName || '').replace(/\.(docx|pdf)$/i, '').trim();
+      if (name) topics.push(name);
+    }
+
+    if (topics.length === 0) return '';
+
+    return '以下是已收录的' + topics.length + '篇学前教育论文题目，请学习其选题角度、标题结构和用词方式，在此基础上组合创新，不要简单重复：\n\n'
+      + topics.map(function(t, i) { return (i + 1) + '. ' + t; }).join('\n');
+  },
+
+  /**
    * Get fuller resource context for style/personalization injection (降重)
    * Returns more text per resource (default 2000 chars) for stronger style signal
    */

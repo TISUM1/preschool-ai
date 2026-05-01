@@ -127,7 +127,7 @@ var PromptBuilder = {
   /**
    * Build messages for paper topic generation
    */
-  buildPaperTopicRequest: function(researchDirection, resourceContext) {
+  buildPaperTopicRequest: async function(researchDirection) {
     var system = '你是一位学前教育领域的学术选题专家，熟悉《学前教育研究》《幼儿教育》《早期教育》等核心期刊的选题方向和发表标准。\n\n'
       + '请根据用户描述的研究方向，推荐5个适合发表在学前教育核心期刊上的论文选题。\n\n'
       + '【选题六大特征——必须借鉴】\n\n'
@@ -162,8 +162,9 @@ var PromptBuilder = {
       + '2. "三阶九步"：幼儿园项目化活动中深度学习的教学范式\n'
       + '3. "自然材料游戏场"：幼儿园低结构材料的创意玩法与深度学习';
 
-    if (resourceContext) {
-      system += '\n\n--- 权威期刊论文范本参考（请参考其选题方向和标题风格）---\n' + resourceContext;
+    var topicLib = await ResourceLibrary.getTopicLibrary();
+    if (topicLib) {
+      system += '\n\n--- 已收录论文题目库 ---\n' + topicLib;
     }
 
     var user = '研究方向：' + researchDirection + '\n请列出5个论文选题。';
